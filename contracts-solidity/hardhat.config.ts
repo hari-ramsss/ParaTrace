@@ -1,4 +1,4 @@
-import { HardhatUserConfig } from "hardhat/config"
+import { HardhatUserConfig, vars } from "hardhat/config"
 import "@nomicfoundation/hardhat-toolbox"
 import "@parity/hardhat-polkadot"
 
@@ -7,29 +7,29 @@ const config: HardhatUserConfig = {
     networks: {
         hardhat: {
             polkadot: {
-                target: "evm",
+                target: "pvm",
             },
             nodeConfig: {
-                nodeBinaryPath: "./bin/dev-node",
+                nodeBinaryPath: "./bin/revive-dev-node-linux-x64", 
                 rpcPort: 8000,
                 dev: true,
             },
             adapterConfig: {
-                adapterBinaryPath: "./bin/eth-rpc",
+                adapterBinaryPath: "./bin/eth-rpc-linux-x64", 
                 dev: true,
             },
         },
         localNode: {
             polkadot: {
-                target: "evm",
+                target: "pvm", 
             },
-            url: `http://127.0.0.1:8545`,
+            url: "http://127.0.0.1:8545",
         },
         polkadotHubTestnet: {
             polkadot: {
-                target: "evm",
+                target: "pvm", 
             },
-            url: "https://testnet-passet-hub-eth-rpc.polkadot.io",
+            url: "https://eth-rpc-testnet.polkadot.io/",
             accounts: [vars.get("PRIVATE_KEY")],
         },
     },
