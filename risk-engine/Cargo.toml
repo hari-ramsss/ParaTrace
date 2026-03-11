@@ -1,0 +1,26 @@
+cargo-features = ["panic-immediate-abort"]
+[package]
+name = "rust-contract-template"
+version = "0.1.0"
+edition = "2021"
+publish = false
+rust-version = "1.84"
+autobins = false
+
+[lib]
+name = "contract"
+crate-type = ["cdylib"]
+path = "src/main.rs"
+
+[profile.release]
+panic = "abort"  
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+
+[dependencies]
+polkavm-derive = { version = "0.26" }
+pallet-revive-uapi = { package = "pallet-revive-uapi", version = "0.6", default-features = false }
+
+[profile.dev]
+panic = "abort"
