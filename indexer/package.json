@@ -1,0 +1,22 @@
+{
+  "name": "paratrace-indexer",
+  "version": "1.0.0",
+  "description": "XCM Event Indexer for ParaTrace — subscribes to XCM transfer events on Polkadot Hub and Asset Hub, then records each cross-chain transfer in the on-chain Solidity registry.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": ["polkadot", "xcm", "indexer", "cross-chain", "paratrace"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@polkadot/api": "^14.3.1",
+    "@polkadot/util": "^13.3.1",
+    "@polkadot/util-crypto": "^13.3.1",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.13.4",
+    "winston": "^3.17.0"
+  }
+}
