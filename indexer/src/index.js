@@ -11,13 +11,14 @@
  *   npm install
  *   npm start
  *
- * Environment variables (see .env.example):
- *   POLKADOT_HUB_WS_RPC      Substrate WS for Polkadot Hub
- *   ASSET_HUB_WS_RPC         Substrate WS for Asset Hub
- *   ETH_RPC_URL              EVM-compatible HTTP RPC for the registry calls
- *   INDEXER_PRIVATE_KEY      Private key of the account signing registry txs
- *   REGISTRY_CONTRACT_ADDRESS  Deployed ParaTraceRegistry.sol address
- *   LOG_LEVEL                winston log level (info by default)
+ * Contract interaction (ParaTraceRegistry.sol — updated interface):
+ *   recordTransaction(wallet, amount, srcChainSlot, dstChainSlot, counterpartyFlagged)
+ *     → called once per detected XCM transfer (onlyOwner — indexer wallet must be owner)
+ *   getRiskScore / isWalletFlagged / getFullProfile — read-only oracle helpers
+ *
+ * Dry-run mode:
+ *   If REGISTRY_CONTRACT_ADDRESS or INDEXER_PRIVATE_KEY are absent the indexer
+ *   logs all detected transfers but sends no on-chain transactions.
  */
 
 require('dotenv').config();
@@ -37,6 +38,7 @@ async function main() {
   logger.info(`  Asset Hub WS    : ${config.ASSET_HUB_WS_RPC}`);
   logger.info(`  EVM RPC         : ${config.ETH_RPC_URL}`);
   logger.info(`  Registry        : ${config.REGISTRY_CONTRACT_ADDRESS ?? '(not set — dry-run mode)'}`);
+  logger.info(`  Write function  : recordTransaction(wallet, amount, srcChainSlot, dstChainSlot, counterpartyFlagged)`);
   logger.info('═══════════════════════════════════════════════════');
 
   // 1. Initialise the Solidity registry client (ethers.js)
