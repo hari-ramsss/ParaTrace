@@ -189,50 +189,66 @@ async function parseBlock(api, blockHash, chainName, sourceParachainId = null) {
       // ── Extract destination from polkadotXcm.Sent ─────────────────────────
       // Event data layout: [origin, destination, message, messageId]
       const sentData = xcmSentEvent.data;
-      const originField      = sentData[0];
+      const originField = sentData[0];
       const destinationField = sentData[1];
 
       const { label: destChain, parachainId: destParachainId } =
         parseDestination(destinationField);
 
       // ── Find sender & amount from balance / asset events ──────────────────
-      let sender   = parseOriginAddress(originField) || null;
+      let sender = parseOriginAddress(originField) || null;
       let receiver = null;
-      let amount   = BigInt(0);
-      let assetId  = null;
+      let amount = BigInt(0);
+      let assetId = null;
 
       for (const e of extrinsicEvents) {
         if (e.section === 'assets' && e.method === 'Transferred') {
           // [assetId, from, to, amount]
-          assetId  = e.data[0]?.toString() ?? null;
-          sender   = sender ?? accountToString(e.data[1]);
+          assetId = e.data[0]?.toString() ?? null;
+          sender = sender ?? accountToString(e.data[1]);
           receiver = accountToString(e.data[2]);
-          amount   = BigInt(e.data[3]?.toString() ?? '0');
+          amount = BigInt(e.data[3]?.toString() ?? '0');
           break;
         }
 
         if (e.section === 'assets' && e.method === 'Burned') {
           // [assetId, owner, balance]
           assetId = e.data[0]?.toString() ?? null;
-          sender  = sender ?? accountToString(e.data[1]);
-          amount  = BigInt(e.data[2]?.toString() ?? '0');
+          sender = sender ?? accountToString(e.data[1]);
+          amount = BigInt(e.data[2]?.toString() ?? '0');
           // keep scanning — a Transferred event may follow with the receiver
         }
 
         if (e.section === 'balances' && e.method === 'Transfer') {
           // [from, to, amount]
-          sender   = sender ?? accountToString(e.data[0]);
+          sender = sender ?? accountToString(e.data[0]);
           receiver = accountToString(e.data[1]);
-          amount   = BigInt(e.data[2]?.toString() ?? '0');
+          amount = BigInt(e.data[2]?.toString() ?? '0');
           break;
+        }
+
+        if (e.section === 'balances' && e.method === 'Withdraw') {
+          // [who, amount] — emitted during teleport (tokens burned on source chain)
+          sender = sender ?? accountToString(e.data[0]);
+          const withdrawAmt = BigInt(e.data[1]?.toString() ?? '0');
+          if (withdrawAmt > amount) amount = withdrawAmt;
+          // keep scanning — a Transfer or Deposit event may follow
+        }
+
+        if (e.section === 'balances' && e.method === 'Burned') {
+          // [who, amount] — alternative burn event in newer runtimes
+          sender = sender ?? accountToString(e.data[0]);
+          const burnAmt = BigInt(e.data[1]?.toString() ?? '0');
+          if (burnAmt > amount) amount = burnAmt;
+          // keep scanning
         }
 
         if (e.section === 'foreignAssets' && e.method === 'Transferred') {
           // [assetId, from, to, amount]
-          assetId  = e.data[0]?.toString() ?? null;
-          sender   = sender ?? accountToString(e.data[1]);
+          assetId = e.data[0]?.toString() ?? null;
+          sender = sender ?? accountToString(e.data[1]);
           receiver = accountToString(e.data[2]);
-          amount   = BigInt(e.data[3]?.toString() ?? '0');
+          amount = BigInt(e.data[3]?.toString() ?? '0');
           break;
         }
       }
@@ -270,10 +286,10 @@ async function parseBlock(api, blockHash, chainName, sourceParachainId = null) {
 
       logger.info(
         `[${chainName}] XCM transfer detected | ` +
-          `Block: ${blockNumber} | ` +
-          `Src parachain: ${sourceParachainId ?? 'relay'} → Dst: ${destChain} | ` +
-          `Amount: ${amount.toString()} | ` +
-          `Asset: ${assetId ?? 'native'}`
+        `Block: ${blockNumber} | ` +
+        `Src parachain: ${sourceParachainId ?? 'relay'} → Dst: ${destChain} | ` +
+        `Amount: ${amount.toString()} | ` +
+        `Asset: ${assetId ?? 'native'}`
       );
 
       transfers.push(transfer);
