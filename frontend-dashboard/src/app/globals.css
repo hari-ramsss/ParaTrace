@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-card: #12121a;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --accent-violet: #8b5cf6;
+  --accent-fuchsia: #d946ef;
+}
+
+/* ─── Base Styles ─────────────────────────────────────────── */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ─── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* ─── Selection ───────────────────────────────────────────── */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: white;
+}
+
+/* ─── Animated gradient background ────────────────────────── */
+.bg-grid {
+  background-image: 
+    linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ─── Glass card ──────────────────────────────────────────── */
+.glass {
+  background: rgba(18, 18, 26, 0.8);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ─── Glow effects ────────────────────────────────────────── */
+.glow-violet {
+  box-shadow: 0 0 40px rgba(139, 92, 246, 0.1), 0 0 80px rgba(139, 92, 246, 0.05);
+}
+
+/* ─── Page transition ─────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}
