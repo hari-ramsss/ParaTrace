@@ -1,34 +1,138 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: var(--bg-primary);
+  --color-card: var(--bg-card);
+  --color-foreground: var(--text-primary);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border-neutral);
+  --color-primary: var(--btn-primary-bg);
+  --color-primary-foreground: var(--btn-primary-text);
+  --color-secondary: var(--btn-secondary-bg);
+}
+
 :root {
-  --bg-primary: #0a0a0f;
-  --bg-card: #12121a;
+  --bg-primary: #f8f9fa;
+  --bg-card: #ffffff;
+  --text-primary: #0e0e0e;
+  --text-secondary: #4a4a4a;
+  --text-muted: #888888;
+  --accent-white: #000000;
+  --border-neutral: rgba(0, 0, 0, 0.08);
+  --grid-color: rgba(0, 0, 0, 0.02);
+  --btn-primary-bg: #000000;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #e5e7eb;
+  --logo-filter: brightness(0);
+}
+
+.dark {
+  --bg-primary: #111111;
+  --bg-card: #18181b;
   --text-primary: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --accent-violet: #8b5cf6;
-  --accent-fuchsia: #d946ef;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --accent-white: #ffffff;
+  --border-neutral: rgba(255, 255, 255, 0.1);
+  --grid-color: rgba(255, 255, 255, 0.03);
+  --btn-primary-bg: #ffffff;
+  --btn-primary-text: #000000;
+  --btn-secondary-bg: rgba(255, 255, 255, 0.1);
+  --logo-filter: brightness(0) invert(1);
+}
+.dark .grain-overlay {
+  opacity: 0.37;
+  mix-blend-mode: overlay;
+  filter: contrast(120%) brightness(100%);
+}
+
+@keyframes noise {
+  0% {
+    transform: translate(0, 0)
+  }
+
+  10% {
+    transform: translate(-5%, -5%)
+  }
+
+  20% {
+    transform: translate(-10%, 5%)
+  }
+
+  30% {
+    transform: translate(5%, -10%)
+  }
+
+  40% {
+    transform: translate(-5%, 15%)
+  }
+
+  50% {
+    transform: translate(-10%, 5%)
+  }
+
+  60% {
+    transform: translate(15%, 0)
+  }
+
+  70% {
+    transform: translate(0, 10%)
+  }
+
+  80% {
+    transform: translate(-15%, 0)
+  }
+
+  90% {
+    transform: translate(10%, 5%)
+  }
+
+  100% {
+    transform: translate(5%, 0)
+  }
 }
 
 /* ─── Base Styles ─────────────────────────────────────────── */
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-family: var(--font-dm-sans), system-ui, sans-serif;
   overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-serif), serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.font-serif {
+  font-family: var(--font-serif), serif;
+}
+
+.font-dm-sans {
+  font-family: var(--font-dm-sans), sans-serif;
 }
 
 /* ─── Scrollbar ───────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(139, 92, 246, 0.3);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(139, 92, 246, 0.5);
 }
@@ -41,7 +145,7 @@ body {
 
 /* ─── Animated gradient background ────────────────────────── */
 .bg-grid {
-  background-image: 
+  background-image:
     linear-gradient(rgba(139, 92, 246, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
   background-size: 64px 64px;
@@ -61,8 +165,15 @@ body {
 
 /* ─── Page transition ─────────────────────────────────────── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {

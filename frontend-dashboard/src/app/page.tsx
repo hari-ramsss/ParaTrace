@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { Activity, Users, AlertTriangle, BarChart3 } from "lucide-react";
 import StatCard from "@/components/StatCard";
@@ -7,6 +6,8 @@ import RecentActivity from "@/components/RecentActivity";
 import RiskChart from "@/components/RiskChart";
 import RiskTrendChart from "@/components/ChainActivityChart";
 import { getDashboardStats, type TransactionEvent } from "@/lib/registry";
+import grained from "@/utils/grained";
+import Link from "next/link";
 
 interface DashboardData {
   totalTransactions: number;
@@ -58,19 +59,47 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const options = {
+        animate: true,
+        patternWidth: 311.79,
+        patternHeight: 96.22,
+        grainOpacity: 0.37,
+        grainDensity: 1,
+        grainWidth: 1.3,
+        grainHeight: 1,
+      };
+
+      const cleanup = grained("#hero-banner", options);
+      return () => {
+        if (cleanup) cleanup();
+      };
+    }
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 animate-fade-in">
       {/* Hero */}
-      <div className="mb-10">
-        <h1 className="text-4xl font-bold text-white mb-2">
-          Risk Intelligence{" "}
-          <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-            Dashboard
-          </span>
+      <div
+        id="hero-banner"
+        className="relative mb-16 py-12 flex flex-col items-center text-center rounded-3xl border border-border transition-colors duration-300"
+        style={{ backgroundColor: "rgb(204, 204, 204)" }}
+      >
+        <h1 className="text-6xl font-bold text-black mb-6 font-serif max-w-4xl tracking-tight leading-tight relative z-20">
+          Risk Intelligence Dashboard
         </h1>
-        <p className="text-gray-400 text-lg">
-          Real-time cross-chain risk profiling for Polkadot XCM transfers
+        <p className="text-black/60 text-xl font-dm-sans max-w-2xl mb-10 leading-relaxed relative z-20">
+          Everything you need to monitor cross-chain risk for Polkadot XCM transfers in real-time.
         </p>
+        <div className="flex items-center gap-4 relative z-20">
+          <Link href="/transactions" className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-xl hover:opacity-90 transition-opacity flex items-center gap-2 group shadow-lg">
+            Start Monitoring <span className="text-lg group-hover:translate-x-1 transition-transform">→</span>
+          </Link>
+          <Link href="#analytics" className="px-8 py-3 bg-secondary text-foreground font-bold rounded-xl hover:opacity-80 transition-opacity shadow-lg cursor-pointer">
+            View Analytics
+          </Link>
+        </div>
       </div>
 
       {/* Error Banner */}
@@ -87,37 +116,33 @@ export default function DashboardPage() {
           value={loading ? "—" : data?.totalTransactions ?? 0}
           subtitle="Recorded XCM transfers"
           icon={Activity}
-          color="violet"
         />
         <StatCard
           title="Wallets Monitored"
           value={loading ? "—" : data?.totalWallets ?? 0}
           subtitle="Unique addresses"
           icon={Users}
-          color="blue"
         />
         <StatCard
           title="Flagged Wallets"
           value={loading ? "—" : data?.flaggedCount ?? 0}
           subtitle="Above risk threshold"
           icon={AlertTriangle}
-          color="red"
         />
         <StatCard
           title="Avg Risk Score"
           value={loading ? "—" : data?.avgScore ?? 0}
           subtitle="Across all wallets"
           icon={BarChart3}
-          color="amber"
         />
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+      <div id="analytics" className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 scroll-mt-24">
         {loading ? (
           <>
-            <div className="h-[350px] bg-white/5 rounded-2xl animate-pulse" />
-            <div className="h-[350px] bg-white/5 rounded-2xl animate-pulse" />
+            <div className="h-[350px] bg-card rounded-2xl animate-pulse" />
+            <div className="h-[350px] bg-card rounded-2xl animate-pulse" />
           </>
         ) : (
           <>

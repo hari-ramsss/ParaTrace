@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Search, AlertTriangle, Activity, Menu, X } from "lucide-react";
+import { Shield, Menu, X, Activity, Users, AlertTriangle, Search, Sun, Moon } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 const NAV_ITEMS = [
     { href: "/", label: "Dashboard", icon: Activity },
@@ -17,14 +18,21 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0f]/90 backdrop-blur-xl border-b border-white/5">
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
             <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-3 group" onClick={() => setMobileOpen(false)}>
-                    <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
-                        <Shield className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-lg font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                <Link
+                    href="/"
+                    className="flex items-center gap-3 group"
+                    onClick={() => setMobileOpen(false)}
+                >
+                    <img
+                        src="/polkadot.png"
+                        alt="Polkadot"
+                        className="w-10 h-10 transition-all"
+                        style={{ filter: "var(--logo-filter)" }}
+                    />
+                    <span className="text-xl font-bold font-serif text-foreground tracking-tight">
                         ParaTrace
                     </span>
                 </Link>
@@ -37,9 +45,9 @@ export default function Navbar() {
                             <Link
                                 key={href}
                                 href={href}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                                        ? "bg-violet-500/10 text-violet-400 shadow-inner"
-                                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-dm-sans font-medium transition-all duration-200 ${isActive
+                                    ? "text-foreground bg-foreground/5"
+                                    : "text-muted hover:text-foreground hover:bg-foreground/5"
                                     }`}
                             >
                                 <Icon className="w-4 h-4" />
@@ -47,11 +55,14 @@ export default function Navbar() {
                             </Link>
                         );
                     })}
+                    <div className="ml-2 pl-2 border-l border-border">
+                        <ThemeToggle />
+                    </div>
                 </div>
 
                 {/* Mobile Hamburger */}
                 <button
-                    className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                    className="md:hidden p-2 rounded-lg text-muted hover:text-foreground hover:bg-foreground/5 transition-colors"
                     onClick={() => setMobileOpen(!mobileOpen)}
                     aria-label="Toggle menu"
                 >
@@ -61,7 +72,7 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {mobileOpen && (
-                <div className="md:hidden border-t border-white/5 bg-[#0a0a0f]/95 backdrop-blur-xl animate-fade-in">
+                <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-xl animate-fade-in">
                     <div className="px-4 py-3 space-y-1">
                         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
                             const isActive = pathname === href;
@@ -71,8 +82,8 @@ export default function Navbar() {
                                     href={href}
                                     onClick={() => setMobileOpen(false)}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                            ? "bg-violet-500/10 text-violet-400"
-                                            : "text-gray-400 hover:text-white hover:bg-white/5"
+                                        ? "bg-foreground/5 text-foreground font-bold"
+                                        : "text-muted hover:text-foreground hover:bg-foreground/5"
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />

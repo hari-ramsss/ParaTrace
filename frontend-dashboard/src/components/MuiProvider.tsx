@@ -2,39 +2,53 @@
 
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { useTheme } from "next-themes";
+import { useEffect, useState, useMemo } from "react";
 
-const darkTheme = createTheme({
-    palette: {
-        mode: "dark",
-        background: {
-            default: "#0a0a0f",
-            paper: "#12121a",
-        },
-        primary: {
-            main: "#8b5cf6",
-        },
-        text: {
-            primary: "#ffffff",
-            secondary: "#9ca3af",
-        },
-    },
-    typography: {
-        fontFamily: "var(--font-geist-sans), system-ui, sans-serif",
-    },
-    components: {
-        MuiCssBaseline: {
-            styleOverrides: {
-                body: {
-                    backgroundColor: "transparent",
-                },
-            },
-        },
-    },
-});
+
 
 export default function MuiProvider({ children }: { children: React.ReactNode }) {
+    const { resolvedTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const theme = useMemo(() => {
+        const mode = mounted && resolvedTheme === "light" ? "light" : "dark";
+        return createTheme({
+            palette: {
+                mode: mode,
+                background: {
+                    default: mode === "dark" ? "#111111" : "#f8f9fa",
+                    paper: mode === "dark" ? "#18181b" : "#ffffff",
+                },
+                primary: {
+                    main: mode === "dark" ? "#ffffff" : "#0e0e0e",
+                },
+                text: {
+                    primary: mode === "dark" ? "#ffffff" : "#0e0e0e",
+                    secondary: mode === "dark" ? "#a1a1a1" : "#6c757d",
+                },
+            },
+            typography: {
+                fontFamily: "var(--font-dm-sans), system-ui, sans-serif",
+            },
+            components: {
+                MuiCssBaseline: {
+                    styleOverrides: {
+                        body: {
+                            backgroundColor: "transparent",
+                        },
+                    },
+                },
+            },
+        });
+    }, [mounted, resolvedTheme]);
+
     return (
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider theme={theme}>
             <CssBaseline enableColorScheme />
             {children}
         </ThemeProvider>

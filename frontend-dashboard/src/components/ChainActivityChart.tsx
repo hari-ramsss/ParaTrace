@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { LineChart } from "@mui/x-charts/LineChart";
+import { useTheme } from "@mui/material/styles";
 import type { TransactionEvent } from "@/lib/registry";
 
 interface RiskTrendChartProps {
@@ -9,6 +10,8 @@ interface RiskTrendChartProps {
 }
 
 export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
     const containerRef = useRef<HTMLDivElement>(null);
     const [chartWidth, setChartWidth] = useState(500);
 
@@ -24,8 +27,8 @@ export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
     }, []);
     if (transactions.length === 0) {
         return (
-            <div className="rounded-2xl border border-white/5 bg-[#12121a] p-6 flex flex-col items-center justify-center min-h-[300px]">
-                <p className="text-gray-500 text-sm">No trend data available yet</p>
+            <div className="rounded-2xl border border-border bg-card p-6 flex flex-col items-center justify-center min-h-[300px]">
+                <p className="text-muted text-sm">No trend data available yet</p>
             </div>
         );
     }
@@ -47,12 +50,12 @@ export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
     const trendColor = latestScore <= 50 ? "#22c55e" : latestScore <= 75 ? "#f59e0b" : "#ef4444";
 
     return (
-        <div ref={containerRef} className="rounded-2xl border border-white/5 bg-[#12121a] p-6">
+        <div ref={containerRef} className="rounded-2xl border border-border bg-card p-6">
             <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Risk Score Trend</h3>
+                <h3 className="text-xl font-bold text-foreground font-serif">Risk Score Trend</h3>
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: trendColor }} />
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-muted font-dm-sans">
                         Latest: {latestScore}
                     </span>
                 </div>
@@ -78,7 +81,7 @@ export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
                     {
                         data: scores,
                         label: "Risk Score",
-                        color: "#8b5cf680",
+                        color: isDark ? "#ffffff60" : "#00000060",
                         showMark: true,
                         curve: "natural",
                     },
@@ -93,15 +96,15 @@ export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
                 width={chartWidth}
                 height={250}
                 sx={{
-                    "& .MuiChartsAxis-line": { stroke: "#ffffff10" },
-                    "& .MuiChartsAxis-tick": { stroke: "#ffffff10" },
+                    "& .MuiChartsAxis-line": { stroke: isDark ? "#ffffff10" : "#00000010" },
+                    "& .MuiChartsAxis-tick": { stroke: isDark ? "#ffffff10" : "#00000010" },
                     "& .MuiLineElement-root": { strokeWidth: 2 },
                     "& .MuiMarkElement-root": { scale: "0.5" },
-                    "& .MuiChartsLegend-label": { fontSize: "11px !important", fill: "#9ca3af !important" },
+                    "& .MuiChartsLegend-label": { fontSize: "11px !important", fill: isDark ? "#9ca3af !important" : "#4b5563 !important" },
                 }}
             />
             {/* Threshold reference */}
-            <div className="flex items-center justify-center gap-6 mt-3 text-[10px] text-gray-500">
+            <div className="flex items-center justify-center gap-6 mt-3 text-[10px] text-muted">
                 <span className="flex items-center gap-1">
                     <span className="w-6 h-[1px] bg-emerald-500 inline-block" /> 0–50 Low
                 </span>

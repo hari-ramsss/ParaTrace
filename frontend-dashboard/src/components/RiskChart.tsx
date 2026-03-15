@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
+import { useTheme } from "@mui/material/styles";
 import type { TransactionEvent } from "@/lib/registry";
 import { formatVolume } from "@/lib/utils";
 
@@ -10,6 +11,8 @@ interface RiskValueScatterChartProps {
 }
 
 export default function RiskValueScatterChart({ transactions }: RiskValueScatterChartProps) {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
     const containerRef = useRef<HTMLDivElement>(null);
     const [chartWidth, setChartWidth] = useState(500);
 
@@ -26,8 +29,8 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
 
     if (transactions.length === 0) {
         return (
-            <div className="rounded-2xl border border-white/5 bg-[#12121a] p-6 flex flex-col items-center justify-center min-h-[300px]">
-                <p className="text-gray-500 text-sm">No transaction data available</p>
+            <div className="rounded-2xl border border-border bg-card p-6 flex flex-col items-center justify-center min-h-[300px]">
+                <p className="text-muted text-sm">No transaction data available</p>
             </div>
         );
     }
@@ -41,9 +44,9 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
     }));
 
     return (
-        <div ref={containerRef} className="rounded-2xl border border-white/5 bg-[#12121a] p-6">
-            <h3 className="text-lg font-semibold text-white mb-1">Outlier Analysis</h3>
-            <p className="text-xs text-gray-500 mb-4">Value (PAS) vs Risk Score</p>
+        <div ref={containerRef} className="rounded-2xl border border-border bg-card p-6">
+            <h3 className="text-xl font-bold text-foreground mb-1">Outlier Analysis</h3>
+            <p className="text-xs text-muted mb-4 font-dm-sans">Value (PAS) vs Risk Score</p>
 
             <div className="flex items-center justify-center overflow-hidden">
                 <ScatterChart
@@ -51,7 +54,7 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
                         {
                             data,
                             label: "XCM Transfers",
-                            color: "#8b5cf6",
+                            color: isDark ? "#ffffff" : "#000000",
                         },
                     ]}
                     width={chartWidth}
@@ -73,9 +76,9 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
                         },
                     ]}
                     sx={{
-                        "& .MuiChartsAxis-line": { stroke: "#ffffff10" },
-                        "& .MuiChartsAxis-tick": { stroke: "#ffffff10" },
-                        "& .MuiChartsLegend-label": { fontSize: "11px !important", fill: "#9ca3af !important" },
+                        "& .MuiChartsAxis-line": { stroke: isDark ? "#ffffff10" : "#00000010" },
+                        "& .MuiChartsAxis-tick": { stroke: isDark ? "#ffffff10" : "#00000010" },
+                        "& .MuiChartsLegend-label": { fontSize: "11px !important", fill: isDark ? "#9ca3af !important" : "#4b5563 !important" },
                         "& .MuiScatterValueItem-root": {
                             stroke: "#8b5cf6",
                             strokeWidth: 1,
@@ -85,14 +88,14 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
                 />
             </div>
             {/* Legend for Quadrants */}
-            <div className="grid grid-cols-2 gap-2 mt-4">
-                <div className="p-2 rounded-lg bg-red-500/5 border border-red-500/10">
-                    <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider">High Risk / High Value</p>
-                    <p className="text-[9px] text-gray-600">Critical Alerts (Top Right)</p>
+            <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="p-3 rounded-xl border border-border bg-foreground/[0.02]">
+                    <p className="text-[11px] text-foreground font-bold uppercase tracking-widest mb-1">High Risk / High Value</p>
+                    <p className="text-[10px] text-muted">Critical Alerts (Top Right)</p>
                 </div>
-                <div className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
-                    <p className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">High Risk / Low Value</p>
-                    <p className="text-[9px] text-gray-600">Suspicious Dust (Bottom Right)</p>
+                <div className="p-3 rounded-xl border border-border bg-foreground/[0.02]">
+                    <p className="text-[11px] text-foreground font-bold uppercase tracking-widest mb-1">High Risk / Low Value</p>
+                    <p className="text-[10px] text-muted">Suspicious Dust (Bottom Right)</p>
                 </div>
             </div>
         </div>

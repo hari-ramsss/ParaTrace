@@ -26,16 +26,16 @@ export default function WalletRiskRadar({ profile }: WalletRiskRadarProps) {
     ];
 
     return (
-        <div className="rounded-2xl border border-white/5 bg-[#12121a] p-6 h-full">
-            <h3 className="text-lg font-semibold text-white mb-6">Threat Vector Analysis</h3>
+        <div className="rounded-2xl border border-border bg-card p-6 h-full">
+            <h3 className="text-lg font-semibold text-foreground mb-6">Threat Vector Analysis</h3>
             <div className="space-y-5">
                 {dimensions.map((dim) => (
                     <div key={dim.label} className="space-y-2">
                         <div className="flex justify-between text-xs font-medium">
-                            <span className="text-gray-400 uppercase tracking-wider">{dim.label}</span>
+                            <span className="text-muted uppercase tracking-wider">{dim.label}</span>
                             <span style={{ color: dim.color }}>{Math.round(dim.value)}%</span>
                         </div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-1.5 w-full bg-foreground/5 rounded-full overflow-hidden">
                             <div
                                 className="h-full rounded-full transition-all duration-1000 ease-out"
                                 style={{
