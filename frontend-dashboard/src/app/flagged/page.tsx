@@ -31,11 +31,11 @@ export default function FlaggedWalletsPage() {
             {/* Header */}
             <div className="mb-8 flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-red-500/10">
-                    <AlertTriangle className="w-6 h-6 text-red-400" />
+                    <AlertTriangle className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Flagged Wallets</h1>
-                    <p className="text-gray-400">Wallets that exceeded the risk threshold</p>
+                    <h1 className="text-3xl font-bold text-foreground">Flagged Wallets</h1>
+                    <p className="text-muted">Wallets that exceeded the risk threshold</p>
                 </div>
             </div>
 
@@ -46,15 +46,15 @@ export default function FlaggedWalletsPage() {
             )}
 
             {/* Table */}
-            <div className="rounded-2xl border border-white/5 bg-[#12121a] overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />
+                            <div key={i} className="h-12 bg-secondary rounded-xl animate-pulse" />
                         ))}
                     </div>
                 ) : flagged.length === 0 ? (
-                    <div className="p-16 text-center text-gray-500">
+                    <div className="p-16 text-center text-muted">
                         <AlertTriangle className="w-12 h-12 mx-auto mb-4 opacity-30" />
                         <p>No flagged wallets found</p>
                         <p className="text-sm mt-1">Wallets are flagged when their risk score exceeds the threshold</p>
@@ -62,10 +62,10 @@ export default function FlaggedWalletsPage() {
                 ) : (
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b border-white/5">
-                                <th className="text-left px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Wallet</th>
-                                <th className="text-center px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Risk Score</th>
-                                <th className="text-right px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Block</th>
+                            <tr className="border-b border-border bg-background">
+                                <th className="text-left px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Wallet</th>
+                                <th className="text-center px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Risk Score</th>
+                                <th className="text-right px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Block</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,12 +74,12 @@ export default function FlaggedWalletsPage() {
                                 return (
                                     <tr
                                         key={`${f.transactionHash}-${i}`}
-                                        className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                                        className="border-b border-border hover:bg-secondary transition-colors"
                                     >
                                         <td className="px-6 py-4">
                                             <Link
                                                 href={`/wallet?address=${f.wallet}`}
-                                                className="font-mono text-sm text-violet-400 hover:text-violet-300 transition-colors"
+                                                className="font-mono text-sm text-primary hover:opacity-80 transition-colors"
                                             >
                                                 {truncateAddress(f.wallet, 8)}
                                             </Link>
@@ -95,7 +95,7 @@ export default function FlaggedWalletsPage() {
                                                 {f.riskScore}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right text-sm text-gray-500 font-mono">
+                                        <td className="px-6 py-4 text-right text-sm text-muted font-mono">
                                             #{f.blockNumber}
                                         </td>
                                     </tr>

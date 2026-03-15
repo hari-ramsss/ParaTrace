@@ -34,14 +34,14 @@ const { recordTransfer } = require('./registryClient');
  */
 const MONITORED_CHAINS = [
   {
-    wsRpc:        config.POLKADOT_HUB_WS_RPC,
-    name:         config.CHAIN_NAMES.POLKADOT_HUB,
-    parachainId:  0,      // relay chain slot
+    wsRpc: config.POLKADOT_HUB_WS_RPC,
+    name: config.CHAIN_NAMES.POLKADOT_HUB,
+    parachainId: 0,      // relay chain slot
   },
   {
-    wsRpc:        config.ASSET_HUB_WS_RPC,
-    name:         config.CHAIN_NAMES.ASSET_HUB,
-    parachainId:  1000,   // Asset Hub parachain ID
+    wsRpc: config.ASSET_HUB_WS_RPC,
+    name: config.CHAIN_NAMES.ASSET_HUB,
+    parachainId: 1000,   // Asset Hub parachain ID
   },
 ];
 
@@ -60,24 +60,59 @@ async function startChainListener(wsRpc, chainName, parachainId) {
   logger.info(`[${chainName}] Connecting to ${wsRpc} …`);
 
   const provider = new WsProvider(wsRpc);
+
+  // Watchdog for auto-restarting the listener on unrecoverable disconnects (like 1006)
+  let isRebooting = false;
+
+  provider.on('error', (err) => {
+    logger.error(`[${chainName}] WebSocket error: ${err.message}`);
+  });
+
+  provider.on('disconnected', () => {
+    logger.warn(`[${chainName}] WebSocket disconnected (Abnormal Closure detected).`);
+
+    // Prevent multiple reboots firing at once
+    if (!isRebooting) {
+      isRebooting = true;
+      logger.info(`[${chainName}] 🔄 Initiating automatic listener reboot in 10 seconds...`);
+
+      setTimeout(async () => {
+        logger.info(`[${chainName}] 🔄 Rebooting listener now...`);
+        try {
+          // Force close the broken provider before recreating
+          await provider.disconnect();
+        } catch (e) { }
+
+        // Re-call the entire setup function to establish a fresh ApiPromise & Subscription
+        startChainListener(wsRpc, chainName, parachainId).catch(err => {
+          logger.error(`[${chainName}] Failed to reboot: ${err.message}`);
+        });
+      }, 10000); // Wait 10s for the network to stabilize before reconnecting
+    }
+  });
+
+  provider.on('connected', () => {
+    logger.info(`[${chainName}] WebSocket connected successfully.`);
+  });
+
   const api = await ApiPromise.create({ provider });
 
   await api.isReady;
 
-  const chain   = await api.rpc.system.chain();
+  const chain = await api.rpc.system.chain();
   const version = await api.rpc.system.version();
   logger.info(
     `[${chainName}] Connected | chain="${chain}" | version="${version}" | parachainId=${parachainId}`
   );
 
-  let processedBlocks    = 0;
-  let detectedTransfers  = 0;
+  let processedBlocks = 0;
+  let detectedTransfers = 0;
 
   // Subscribe to FINALISED heads to avoid processing reorged blocks
   const unsubscribe = await api.rpc.chain.subscribeFinalizedHeads(
     async (header) => {
       const blockNumber = header.number.toNumber();
-      const blockHash   = header.hash;
+      const blockHash = header.hash;
 
       logger.debug(
         `[${chainName}] Finalised block #${blockNumber} (${blockHash.toHex().slice(0, 10)}…)`
@@ -101,7 +136,7 @@ async function startChainListener(wsRpc, chainName, parachainId) {
       detectedTransfers += transfers.length;
       logger.info(
         `[${chainName}] Block #${blockNumber}: ${transfers.length} XCM transfer(s) ` +
-          `(session total: ${detectedTransfers})`
+        `(session total: ${detectedTransfers})`
       );
 
       // Submit each transfer to the Solidity registry

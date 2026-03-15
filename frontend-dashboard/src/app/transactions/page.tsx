@@ -33,12 +33,12 @@ export default function TransactionsPage() {
         <div className="max-w-6xl mx-auto px-6 py-10 animate-fade-in">
             {/* Header */}
             <div className="mb-8 flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-violet-500/10">
-                    <Activity className="w-6 h-6 text-violet-400" />
+                <div className="p-2 rounded-xl bg-primary/10">
+                    <Activity className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Transaction Feed</h1>
-                    <p className="text-gray-400">Recent XCM transfers recorded on-chain</p>
+                    <h1 className="text-3xl font-bold text-foreground">Transaction Feed</h1>
+                    <p className="text-muted">Recent XCM transfers recorded on-chain</p>
                 </div>
             </div>
 
@@ -49,15 +49,15 @@ export default function TransactionsPage() {
             )}
 
             {/* Table */}
-            <div className="rounded-2xl border border-white/5 bg-[#12121a] overflow-hidden">
+            <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
                 {loading ? (
                     <div className="p-6 space-y-3">
                         {[...Array(8)].map((_, i) => (
-                            <div key={i} className="h-12 bg-white/5 rounded-xl animate-pulse" />
+                            <div key={i} className="h-12 bg-secondary rounded-xl animate-pulse" />
                         ))}
                     </div>
                 ) : transactions.length === 0 ? (
-                    <div className="p-16 text-center text-gray-500">
+                    <div className="p-16 text-center text-muted">
                         <Activity className="w-12 h-12 mx-auto mb-4 opacity-30" />
                         <p>No transactions recorded yet</p>
                         <p className="text-sm mt-1">Transactions will appear here once the indexer records XCM transfers</p>
@@ -66,12 +66,12 @@ export default function TransactionsPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="border-b border-white/5">
-                                    <th className="text-left px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Wallet</th>
-                                    <th className="text-center px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Route</th>
-                                    <th className="text-right px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Amount</th>
-                                    <th className="text-center px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Score</th>
-                                    <th className="text-right px-6 py-4 text-xs text-gray-500 font-medium uppercase tracking-wider">Block</th>
+                                <tr className="border-b border-border bg-background">
+                                    <th className="text-left px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Wallet</th>
+                                    <th className="text-center px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Route</th>
+                                    <th className="text-right px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Amount</th>
+                                    <th className="text-center px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Score</th>
+                                    <th className="text-right px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Block</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,24 +80,24 @@ export default function TransactionsPage() {
                                     return (
                                         <tr
                                             key={`${tx.transactionHash}-${i}`}
-                                            className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors"
+                                            className="border-b border-border hover:bg-secondary transition-colors"
                                         >
                                             <td className="px-6 py-4">
                                                 <Link
                                                     href={`/wallet?address=${tx.wallet}`}
-                                                    className="font-mono text-sm text-violet-400 hover:text-violet-300 transition-colors"
+                                                    className="font-mono text-sm text-primary hover:opacity-80 transition-colors"
                                                 >
                                                     {truncateAddress(tx.wallet, 6)}
                                                 </Link>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-center gap-2 text-sm">
-                                                    <span className="text-gray-300">{getChainName(tx.sourceChain)}</span>
-                                                    <ArrowRight className="w-3 h-3 text-gray-600" />
-                                                    <span className="text-gray-300">{getChainName(tx.destChain)}</span>
+                                                    <span className="text-foreground">{getChainName(tx.sourceChain)}</span>
+                                                    <ArrowRight className="w-3 h-3 text-muted" />
+                                                    <span className="text-foreground">{getChainName(tx.destChain)}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-right text-sm text-white font-medium">
+                                            <td className="px-6 py-4 text-right text-sm text-foreground font-medium">
                                                 {formatVolume(tx.amount)} PAS
                                             </td>
                                             <td className="px-6 py-4 text-center">
@@ -111,7 +111,7 @@ export default function TransactionsPage() {
                                                     {tx.newScore}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right text-sm text-gray-500 font-mono">
+                                            <td className="px-6 py-4 text-right text-sm text-muted font-mono">
                                                 #{tx.blockNumber}
                                             </td>
                                         </tr>

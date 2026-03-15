@@ -75,8 +75,8 @@ export default function WalletLookupContent() {
         <div className="max-w-4xl mx-auto px-6 py-10 animate-fade-in">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-white mb-2">Wallet Lookup</h1>
-                <p className="text-gray-400">Enter any EVM address to view its full risk profile</p>
+                <h1 className="text-3xl font-bold text-foreground mb-2">Wallet Lookup</h1>
+                <p className="text-muted">Enter any EVM address to view its full risk profile</p>
             </div>
 
             {/* Search */}
@@ -89,13 +89,13 @@ export default function WalletLookupContent() {
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                             placeholder="0x... (EVM H160 address)"
-                            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all font-mono text-sm"
+                            className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-background border border-border text-foreground placeholder:-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all font-mono text-sm"
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
                     >
                         {loading ? "Loading..." : <>Lookup <ArrowRight className="w-4 h-4" /></>}
                     </button>
@@ -114,12 +114,12 @@ export default function WalletLookupContent() {
                 <div className="space-y-6">
                     {/* Risk Score Hero & Radar */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 rounded-2xl border border-white/5 bg-[#12121a] p-8 flex flex-col sm:flex-row items-center gap-8 shadow-inner">
+                        <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-8 flex flex-col sm:flex-row items-center gap-8 shadow-sm">
                             <RiskGauge score={profile.riskScore} size="lg" />
                             <div className="flex-1 space-y-3">
                                 <div>
-                                    <p className="text-sm text-gray-400 mb-1">Address</p>
-                                    <p className="text-white font-mono text-xs break-all opacity-80">{address}</p>
+                                    <p className="text-sm text-muted mb-1">Address</p>
+                                    <p className="text-foreground font-mono text-xs break-all opacity-80">{address}</p>
                                 </div>
                                 <div className="flex gap-4">
                                     <div
@@ -158,13 +158,13 @@ export default function WalletLookupContent() {
 
                     {/* Active Chains */}
                     {profile.chainBitmap > 0 && (
-                        <div className="rounded-2xl border border-white/5 bg-[#12121a] p-6">
-                            <h3 className="text-sm font-medium text-gray-400 mb-3">Active Chains</h3>
+                        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+                            <h3 className="text-sm font-medium text-muted mb-3">Active Chains</h3>
                             <div className="flex flex-wrap gap-2">
                                 {getActiveChains(profile.chainBitmap).map((chain) => (
                                     <span
                                         key={chain}
-                                        className="px-3 py-1 rounded-full bg-violet-500/10 text-violet-400 text-xs font-medium border border-violet-500/10"
+                                        className="px-3 py-1 rounded-full bg-secondary text-foreground text-xs font-medium border border-border"
                                     >
                                         {chain}
                                     </span>
@@ -174,13 +174,13 @@ export default function WalletLookupContent() {
                     )}
 
                     {/* Transaction History */}
-                    <div className="rounded-2xl border border-white/5 bg-[#12121a] p-6">
+                    <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
-                            <ArrowDownUp className="w-4 h-4 text-gray-400" />
-                            <h3 className="text-lg font-semibold text-white">Transaction History</h3>
+                            <ArrowDownUp className="w-4 h-4 text-muted" />
+                            <h3 className="text-lg font-semibold text-foreground">Transaction History</h3>
                         </div>
                         {walletTxs.length === 0 ? (
-                            <p className="text-gray-500 text-sm text-center py-6">
+                            <p className="text-muted text-sm text-center py-6">
                                 No transaction events found for this wallet
                             </p>
                         ) : (
@@ -190,7 +190,7 @@ export default function WalletLookupContent() {
                                     return (
                                         <div
                                             key={`${tx.transactionHash}-${i}`}
-                                            className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] transition-colors"
+                                            className="flex items-center justify-between p-3 rounded-xl bg-background hover:bg-secondary transition-colors border border-transparent hover:border-border"
                                         >
                                             <div className="flex items-center gap-3">
                                                 <div
@@ -198,16 +198,16 @@ export default function WalletLookupContent() {
                                                     style={{ backgroundColor: level.color }}
                                                 />
                                                 <div>
-                                                    <p className="text-sm text-gray-300">
+                                                    <p className="text-sm text-foreground">
                                                         {getChainName(tx.sourceChain)} → {getChainName(tx.destChain)}
                                                     </p>
-                                                    <p className="text-xs text-gray-600 font-mono">
+                                                    <p className="text-xs text-muted font-mono">
                                                         Block #{tx.blockNumber}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-sm text-white font-medium">
+                                                <p className="text-sm text-foreground font-medium">
                                                     {formatVolume(tx.amount)} PAS
                                                 </p>
                                                 <p className="text-xs" style={{ color: level.color }}>
@@ -235,9 +235,9 @@ export default function WalletLookupContent() {
 
 function InfoCard({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-xl border border-white/5 bg-white/[0.02] p-4">
-            <p className="text-xs text-gray-500 mb-1">{label}</p>
-            <p className="text-lg font-semibold text-white">{value}</p>
+        <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+            <p className="text-xs text-muted mb-1">{label}</p>
+            <p className="text-lg font-semibold text-foreground">{value}</p>
         </div>
     );
 }
