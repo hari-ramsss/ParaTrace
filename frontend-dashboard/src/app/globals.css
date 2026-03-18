@@ -40,6 +40,7 @@
   --btn-secondary-bg: rgba(255, 255, 255, 0.1);
   --logo-filter: brightness(0) invert(1);
 }
+
 .dark .grain-overlay {
   opacity: 0.37;
   mix-blend-mode: overlay;
@@ -178,4 +179,15 @@ h6 {
 
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out;
+}
+
+/* ─── View Transition API (Radial Reveal) ─────────────────── */
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+  z-index: 9999;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
 }

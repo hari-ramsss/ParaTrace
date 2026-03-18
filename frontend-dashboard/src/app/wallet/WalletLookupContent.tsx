@@ -95,7 +95,7 @@ export default function WalletLookupContent() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-3.5 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                        className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2 shadow-lg"
                     >
                         {loading ? "Loading..." : <>Lookup <ArrowRight className="w-4 h-4" /></>}
                     </button>

@@ -83,13 +83,12 @@ export default function DashboardPage() {
       {/* Hero */}
       <div
         id="hero-banner"
-        className="relative mb-16 py-12 flex flex-col items-center text-center rounded-3xl border border-border transition-colors duration-300"
-        style={{ backgroundColor: "rgb(204, 204, 204)" }}
+        className="relative mb-16 py-12 flex flex-col items-center text-center rounded-3xl border border-border transition-colors duration-300 bg-card overflow-hidden shadow-sm"
       >
-        <h1 className="text-6xl font-bold text-black mb-6 font-serif max-w-4xl tracking-tight leading-tight relative z-20">
+        <h1 className="text-6xl font-bold text-foreground mb-6 font-serif max-w-4xl tracking-tight leading-tight relative z-20">
           Risk Intelligence Dashboard
         </h1>
-        <p className="text-black/60 text-xl font-dm-sans max-w-2xl mb-10 leading-relaxed relative z-20">
+        <p className="text-muted text-xl font-dm-sans max-w-2xl mb-10 leading-relaxed relative z-20">
           Everything you need to monitor cross-chain risk for Polkadot XCM transfers in real-time.
         </p>
         <div className="flex items-center gap-4 relative z-20">

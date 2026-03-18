@@ -175,7 +175,7 @@ export default function TransferPage() {
                                 <button
                                     type="button"
                                     onClick={() => { setIsSourceOpen(!isSourceOpen); setIsDestOpen(false); }}
-                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none flex items-center justify-between"
+                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none flex items-center justify-between hover:border-primary/50 transition-all duration-200"
                                     disabled={status !== "idle" && status !== "error"}
                                 >
                                     <span>
@@ -199,7 +199,7 @@ export default function TransferPage() {
                                                 key={net.id}
                                                 type="button"
                                                 onClick={() => { setSourceChain(net.id); setIsSourceOpen(false); }}
-                                                className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-secondary ${sourceChain === net.id ? "text-primary bg-primary/5 font-medium" : "text-foreground"}`}
+                                                className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-primary/10 hover:text-primary ${sourceChain === net.id ? "text-primary bg-primary/5 font-semibold" : "text-foreground"}`}
                                             >
                                                 {net.name} ({net.id})
                                             </button>
@@ -217,10 +217,10 @@ export default function TransferPage() {
                                     setSourceChain(destChain);
                                     setDestChain(temp);
                                 }}
-                                className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center shadow-sm shrink-0 z-10 sm:static absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-x-0 sm:translate-y-0 hover:bg-secondary transition-colors"
+                                className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center shadow-sm shrink-0 z-10 sm:static absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-x-0 sm:translate-y-0 hover:bg-primary hover:text-primary-foreground transition-all duration-200 group"
                             >
-                                <ArrowRightLeft className="w-4 h-4 text-muted hidden sm:block" />
-                                <ArrowDown className="w-4 h-4 text-muted sm:hidden block" />
+                                <ArrowRightLeft className="w-4 h-4 text-muted group-hover:text-inherit hidden sm:block" />
+                                <ArrowDown className="w-4 h-4 text-muted group-hover:text-inherit sm:hidden block" />
                             </button>
 
                             {/* Destination Selection */}
@@ -229,7 +229,7 @@ export default function TransferPage() {
                                 <button
                                     type="button"
                                     onClick={() => { setIsDestOpen(!isDestOpen); setIsSourceOpen(false); }}
-                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none flex items-center justify-between sm:flex-row-reverse"
+                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none flex items-center justify-between sm:flex-row-reverse hover:border-primary/50 transition-all duration-200"
                                     disabled={status !== "idle" && status !== "error"}
                                     dir="ltr"
                                 >
@@ -254,7 +254,7 @@ export default function TransferPage() {
                                                 key={net.id}
                                                 type="button"
                                                 onClick={() => { setDestChain(net.id); setIsDestOpen(false); }}
-                                                className={`w-full text-left sm:text-right px-4 py-3 text-sm transition-colors hover:bg-secondary ${destChain === net.id ? "text-primary bg-primary/5 font-medium" : "text-foreground"}`}
+                                                className={`w-full text-left sm:text-right px-4 py-3 text-sm transition-colors hover:bg-primary/10 hover:text-primary ${destChain === net.id ? "text-primary bg-primary/5 font-semibold" : "text-foreground"}`}
                                             >
                                                 {net.name} ({net.id})
                                             </button>
@@ -287,7 +287,7 @@ export default function TransferPage() {
                         <button
                             type="submit"
                             disabled={status !== "idle" && status !== "error"}
-                            className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
                         >
                             {status === "idle" || status === "error" ? (
                                 <>Teleport to Asset Hub <ArrowRight className="w-5 h-5" /></>
