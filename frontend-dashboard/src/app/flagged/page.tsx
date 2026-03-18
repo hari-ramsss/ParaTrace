@@ -79,9 +79,9 @@ export default function FlaggedWalletsPage() {
                                         <td className="px-6 py-4">
                                             <Link
                                                 href={`/wallet?address=${f.wallet}`}
-                                                className="font-mono text-sm text-primary hover:opacity-80 transition-colors"
+                                                className="font-mono text-sm text-primary hover:opacity-80 transition-colors break-all"
                                             >
-                                                {truncateAddress(f.wallet, 8)}
+                                                {f.wallet}
                                             </Link>
                                         </td>
                                         <td className="px-6 py-4 text-center">

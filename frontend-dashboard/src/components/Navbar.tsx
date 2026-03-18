@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Menu, X, Activity, Users, AlertTriangle, Search, Sun, Moon } from "lucide-react";
+import { Shield, Menu, X, Activity, Users, AlertTriangle, Search, Sun, Moon, Wallet, LogOut, ChevronDown } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import { useWallet } from "./WalletProvider";
+import { truncateAddress } from "@/lib/utils";
 
 const NAV_ITEMS = [
     { href: "/", label: "Dashboard", icon: Activity },
@@ -17,6 +19,7 @@ const NAV_ITEMS = [
 export default function Navbar() {
     const pathname = usePathname();
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { selectedAccount, isConnecting, connect, disconnect } = useWallet();
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-b border-border">
@@ -56,8 +59,35 @@ export default function Navbar() {
                             </Link>
                         );
                     })}
-                    <div className="ml-2 pl-2 border-l border-border">
+                    <div className="ml-2 pl-2 border-l border-border flex items-center gap-3">
                         <ThemeToggle />
+
+                        {selectedAccount ? (
+                            <div className="flex items-center gap-2 pl-2 border-l border-border">
+                                <div className="flex flex-col items-end mr-1">
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Connected</span>
+                                    <span className="text-sm font-medium text-foreground leading-tight">
+                                        {selectedAccount.meta.name || truncateAddress(selectedAccount.address)}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={disconnect}
+                                    className="p-2 rounded-lg text-muted hover:text-red-400 hover:bg-red-400/10 transition-all"
+                                    title="Disconnect Wallet"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={connect}
+                                disabled={isConnecting}
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all shadow-md active:scale-95 disabled:opacity-50"
+                            >
+                                <Wallet className="w-4 h-4" />
+                                {isConnecting ? "Connecting..." : "Connect"}
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -92,6 +122,40 @@ export default function Navbar() {
                                 </Link>
                             );
                         })}
+
+                        {/* Mobile Wallet Section */}
+                        <div className="pt-2 mt-2 border-t border-border">
+                            {selectedAccount ? (
+                                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-foreground/5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                            <Wallet className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-bold text-primary uppercase tracking-wider">Connected</p>
+                                            <p className="text-sm font-medium text-foreground">
+                                                {selectedAccount.meta.name || truncateAddress(selectedAccount.address)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => { disconnect(); setMobileOpen(false); }}
+                                        className="p-2 rounded-lg text-muted hover:text-red-400 transition-colors"
+                                    >
+                                        <LogOut className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => { connect(); setMobileOpen(false); }}
+                                    disabled={isConnecting}
+                                    className="w-full flex items-center justify-center gap-3 px-4 py-4 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg"
+                                >
+                                    <Wallet className="w-5 h-5" />
+                                    {isConnecting ? "Connecting..." : "Connect Wallet"}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

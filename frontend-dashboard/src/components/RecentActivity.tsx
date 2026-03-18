@@ -43,8 +43,8 @@ export default function RecentActivity({ transactions, loading }: RecentActivity
                                         style={{ backgroundColor: level.color }}
                                     />
                                     <div>
-                                        <p className="text-sm font-mono text-foreground">
-                                            {truncateAddress(tx.wallet)}
+                                        <p className="text-sm font-mono text-foreground break-all">
+                                            {tx.wallet}
                                         </p>
                                         <p className="text-xs text-gray-500">
                                             {getChainName(tx.sourceChain)} → {getChainName(tx.destChain)}

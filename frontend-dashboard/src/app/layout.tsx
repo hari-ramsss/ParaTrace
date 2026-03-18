@@ -4,6 +4,7 @@ import Navbar from "@/components/Navbar";
 import MuiProvider from "@/components/MuiProvider";
 import NetworkStatus from "@/components/NetworkStatus";
 import { ThemeProvider } from "next-themes";
+import { WalletProvider } from "@/components/WalletProvider";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -37,9 +38,11 @@ export default function RootLayout({
       <body className={`${dmSans.variable} ${fraunces.variable} antialiased bg-grid min-h-screen relative`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <MuiProvider>
-            <Navbar />
-            <main className="pt-16 pb-12">{children}</main>
-            <NetworkStatus rpcUrl={process.env.NEXT_PUBLIC_ETH_RPC_URL || "https://services.polkadothub-rpc.com/testnet"} />
+            <WalletProvider>
+              <Navbar />
+              <main className="pt-16 pb-12">{children}</main>
+              <NetworkStatus rpcUrl={process.env.NEXT_PUBLIC_ETH_RPC_URL || "https://services.polkadothub-rpc.com/testnet"} />
+            </WalletProvider>
           </MuiProvider>
         </ThemeProvider>
       </body>

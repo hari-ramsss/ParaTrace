@@ -83,11 +83,8 @@ export default function TransactionsPage() {
                                             className="border-b border-border hover:bg-secondary transition-colors"
                                         >
                                             <td className="px-6 py-4">
-                                                <Link
-                                                    href={`/wallet?address=${tx.wallet}`}
-                                                    className="font-mono text-sm text-primary hover:opacity-80 transition-colors"
-                                                >
-                                                    {truncateAddress(tx.wallet, 6)}
+                                                <Link href={`/wallet?address=${tx.wallet}`} className="hover:text-primary transition-colors hover:underline break-all">
+                                                    {tx.wallet}
                                                 </Link>
                                             </td>
                                             <td className="px-6 py-4">

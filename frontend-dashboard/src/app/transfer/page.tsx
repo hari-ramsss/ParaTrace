@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Wallet, Activity, ArrowDown, ChevronDown, ArrowRightLeft } from "lucide-react";
-import { usePolkadotWallet } from "@/hooks/usePolkadotWallet";
+import { ArrowRight, Wallet, Activity, ArrowDown, ChevronDown, ArrowRightLeft, MousePointer2 } from "lucide-react";
+import { useWallet } from "@/components/WalletProvider";
 
 // Dynamic import for Polkadot API to avoid SSR issues
 let ApiPromise: any;
 let WsProvider: any;
 
 export default function TransferPage() {
-    const { connectWallet, logout, accounts, selectedAccount, setSelectedAccount, isConnecting, error: walletError } = usePolkadotWallet();
+    const { selectedAccount, isConnecting, connect, disconnect } = useWallet();
 
     const [amount, setAmount] = useState("1");
     // Updated state to handle multiple parachains instead of just A/B
@@ -131,20 +131,23 @@ export default function TransferPage() {
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-primary/10 blur-[100px] pointer-events-none" />
 
                 {!selectedAccount ? (
-                    <div className="text-center py-8">
-                        <Wallet className="w-12 h-12 text-primary mx-auto mb-4 opacity-80" />
-                        <h3 className="text-lg font-medium text-foreground mb-2">Connect Polkadot Wallet</h3>
-                        <p className="text-sm text-muted mb-6">Connect Talisman or Polkadot.js to initiate a live cross-chain transfer.</p>
+                    <div className="text-center py-12">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                            <MousePointer2 className="w-8 h-8 text-primary animate-bounce-slow" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-3">Wallet Connection Required</h3>
+                        <p className="text-muted mb-8 max-w-sm mx-auto leading-relaxed">
+                            To perform live XCM transfers, please connect your Polkadot wallet using the button in the navigation bar above.
+                        </p>
 
                         <button
-                            onClick={connectWallet}
+                            onClick={connect}
                             disabled={isConnecting}
-                            className="px-6 py-3 rounded-xl bg-primary text-primary-foreground font-medium hover:opacity-90 transition-colors disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-all shadow-lg active:scale-95 disabled:opacity-50"
                         >
-                            {isConnecting ? "Connecting..." : "Connect Extension"}
+                            <Wallet className="w-5 h-5" />
+                            {isConnecting ? "Connecting Extension..." : "Connect Wallet Now"}
                         </button>
-
-                        {walletError && <p className="mt-4 text-sm text-red-400">{walletError}</p>}
                     </div>
                 ) : (
                     <form onSubmit={handleTransfer} className="space-y-6 relative z-10">
@@ -158,13 +161,9 @@ export default function TransferPage() {
                                     <p className="text-xs text-muted font-mono truncate w-40 sm:w-64">{selectedAccount.address}</p>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                onClick={logout}
-                                className="text-xs text-muted hover:text-foreground transition-colors"
-                            >
-                                Disconnect
-                            </button>
+                            <div className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold text-primary uppercase tracking-wider">
+                                Active
+                            </div>
                         </div>
 
                         {/* Network Selection */}
