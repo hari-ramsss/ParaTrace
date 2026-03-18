@@ -18,6 +18,14 @@ const POLKADOT_HUB_WS_RPC =
 const ASSET_HUB_WS_RPC =
   process.env.ASSET_HUB_WS_RPC || 'wss://westend-asset-hub-rpc.polkadot.io';
 
+/** Bridge Hub Westend Testnet */
+const BRIDGE_HUB_WS_RPC =
+  process.env.BRIDGE_HUB_WS_RPC || 'wss://westend-bridge-hub-rpc.polkadot.io';
+
+/** Coretime Westend Testnet */
+const CORETIME_WS_RPC =
+  process.env.CORETIME_WS_RPC || 'wss://westend-coretime-rpc.polkadot.io';
+
 /**
  * Polkadot Hub EVM-compatible HTTP RPC
  * Used by ethers.js to send transactions to the Solidity registry.
@@ -82,6 +90,8 @@ const MIN_TRANSFER_AMOUNT = BigInt(process.env.MIN_TRANSFER_AMOUNT || '0');
 const CHAIN_NAMES = {
   POLKADOT_HUB: 'Polkadot Hub',
   ASSET_HUB: 'Asset Hub',
+  BRIDGE_HUB: 'Bridge Hub',
+  CORETIME: 'Coretime',
 };
 
 /**
@@ -98,7 +108,7 @@ const CHAIN_NAMES = {
  *   Coretime    = parachainId 1005
  */
 const PARACHAIN_ID_TO_SLOT = {
-  0:    0,  // Relay Chain / Polkadot Hub
+  0: 0,  // Relay Chain / Polkadot Hub
   1000: 1,  // Asset Hub
   1002: 2,  // Bridge Hub
   1004: 3,  // People Chain
@@ -126,6 +136,8 @@ function parachainToSlot(parachainId) {
 module.exports = {
   POLKADOT_HUB_WS_RPC,
   ASSET_HUB_WS_RPC,
+  BRIDGE_HUB_WS_RPC,
+  CORETIME_WS_RPC,
   ETH_RPC_URL,
   INDEXER_PRIVATE_KEY,
   REGISTRY_CONTRACT_ADDRESS,

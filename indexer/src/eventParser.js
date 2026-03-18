@@ -181,7 +181,7 @@ async function parseBlock(api, blockHash, chainName, sourceParachainId = null) {
     // Scan each extrinsic for XCM activity
     for (const [extrinsicIndex, extrinsicEvents] of eventsByExtrinsic) {
       const xcmSentEvent = extrinsicEvents.find(
-        (e) => e.section === 'polkadotXcm' && e.method === 'Sent'
+        (e) => (e.section === 'polkadotXcm' || e.section === 'xcmPallet') && e.method === 'Sent'
       );
 
       if (!xcmSentEvent) continue;

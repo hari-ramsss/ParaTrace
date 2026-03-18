@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Wallet, Activity, ArrowDown } from "lucide-react";
+import { ArrowRight, Wallet, Activity, ArrowDown, ChevronDown, ArrowRightLeft } from "lucide-react";
 import { usePolkadotWallet } from "@/hooks/usePolkadotWallet";
 
 // Dynamic import for Polkadot API to avoid SSR issues
@@ -12,7 +12,12 @@ export default function TransferPage() {
     const { connectWallet, logout, accounts, selectedAccount, setSelectedAccount, isConnecting, error: walletError } = usePolkadotWallet();
 
     const [amount, setAmount] = useState("1");
-    const [direction, setDirection] = useState<"RelayToAssetHub" | "AssetHubToRelay">("RelayToAssetHub");
+    // Updated state to handle multiple parachains instead of just A/B
+    const [sourceChain, setSourceChain] = useState<number>(0);
+    const [destChain, setDestChain] = useState<number>(1000);
+    const [isSourceOpen, setIsSourceOpen] = useState(false);
+    const [isDestOpen, setIsDestOpen] = useState(false);
+
     const [status, setStatus] = useState<"idle" | "connecting" | "signing" | "broadcasting" | "success" | "error">("idle");
     const [txHash, setTxHash] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -32,49 +37,50 @@ export default function TransferPage() {
                 WsProvider = polkadotApi.WsProvider;
             }
 
-            // 1. Connect to the correct source chain RPC
-            const rpcUrl = direction === "RelayToAssetHub"
-                ? "wss://westend-rpc.polkadot.io"
-                : "wss://westend-asset-hub-rpc.polkadot.io";
+            // 1. Connect to the correct source chain RPC dynamically
+            let rpcUrl = "wss://westend-rpc.polkadot.io";
+            if (sourceChain === 1000) rpcUrl = "wss://westend-asset-hub-rpc.polkadot.io";
+            if (sourceChain === 1002) rpcUrl = "wss://westend-bridge-hub-rpc.polkadot.io";
+            if (sourceChain === 1005) rpcUrl = "wss://westend-coretime-rpc.polkadot.io";
 
             const provider = new WsProvider(rpcUrl);
             const api = await ApiPromise.create({ provider });
 
             setStatus("signing");
 
-            // 2. Build XCM V3 Teleport parameters based on direction
+            // 2. Build XCM V3 Teleport parameters dynamically based on source/dest
             let dest, beneficiary, assets, tx;
             const plancks = BigInt(parseFloat(amount) * 1e12).toString();
 
-            if (direction === "RelayToAssetHub") {
-                dest = { V3: { parents: 0, interior: { X1: { Parachain: 1000 } } } };
+            const isRelaySource = sourceChain === 0;
+            const isRelayDest = destChain === 0;
+
+            if (isRelaySource && !isRelayDest) {
+                // Relay -> Parachain (downward teleport)
+                dest = { V3: { parents: 0, interior: { X1: { Parachain: destChain } } } };
                 beneficiary = {
-                    V3: {
-                        parents: 0,
-                        interior: {
-                            X1: {
-                                AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null }
-                            }
-                        }
-                    }
+                    V3: { parents: 0, interior: { X1: { AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null } } } }
                 };
                 assets = {
                     V3: [{ id: { Concrete: { parents: 0, interior: "Here" } }, fun: { Fungible: plancks } }]
                 };
                 tx = api.tx.xcmPallet.teleportAssets(dest, beneficiary, assets, 0);
 
-            } else {
-                // Asset Hub -> Relay Chain
+            } else if (!isRelaySource && isRelayDest) {
+                // Parachain -> Relay (upward teleport)
                 dest = { V3: { parents: 1, interior: "Here" } };
                 beneficiary = {
-                    V3: {
-                        parents: 0,
-                        interior: {
-                            X1: {
-                                AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null }
-                            }
-                        }
-                    }
+                    V3: { parents: 0, interior: { X1: { AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null } } } }
+                };
+                assets = {
+                    V3: [{ id: { Concrete: { parents: 1, interior: "Here" } }, fun: { Fungible: plancks } }]
+                };
+                tx = api.tx.polkadotXcm.teleportAssets(dest, beneficiary, assets, 0);
+            } else {
+                // Parachain -> Parachain (lateral teleport via Relay)
+                dest = { V3: { parents: 1, interior: { X1: { Parachain: destChain } } } };
+                beneficiary = {
+                    V3: { parents: 0, interior: { X1: { AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null } } } }
                 };
                 assets = {
                     V3: [{ id: { Concrete: { parents: 1, interior: "Here" } }, fun: { Fungible: plancks } }]
@@ -161,25 +167,100 @@ export default function TransferPage() {
                             </button>
                         </div>
 
-                        {/* Direction Toggle */}
-                        <div className="flex items-center justify-center gap-4 relative">
-                            <div className={`p-4 rounded-xl flex-1 border transition-colors ${direction === "RelayToAssetHub" ? "bg-primary/5 border-primary/20" : "bg-card border-border"}`}>
-                                <p className="text-xs text-muted mb-1">From Network</p>
-                                <p className="font-medium text-foreground">{direction === "RelayToAssetHub" ? "Westend Relay" : "Asset Hub (1000)"}</p>
+                        {/* Network Selection */}
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative">
+                            {/* Source Selection */}
+                            <div className="p-4 rounded-xl flex-1 border border-border bg-card w-full relative">
+                                <label className="text-xs text-muted mb-2 block">From Network</label>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsSourceOpen(!isSourceOpen); setIsDestOpen(false); }}
+                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none flex items-center justify-between"
+                                    disabled={status !== "idle" && status !== "error"}
+                                >
+                                    <span>
+                                        {sourceChain === 0 ? "Westend Relay" :
+                                            sourceChain === 1000 ? "Asset Hub" :
+                                                sourceChain === 1002 ? "Bridge Hub" : "Coretime"} ({sourceChain})
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 text-muted" />
+                                </button>
+
+                                {/* Source Dropdown Menu */}
+                                {isSourceOpen && status === "idle" && (
+                                    <div className="absolute top-[calc(100%+0.5rem)] left-0 w-full bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden">
+                                        {[
+                                            { id: 0, name: "Westend Relay" },
+                                            { id: 1000, name: "Asset Hub" },
+                                            { id: 1002, name: "Bridge Hub" },
+                                            { id: 1005, name: "Coretime" }
+                                        ].map((net) => (
+                                            <button
+                                                key={net.id}
+                                                type="button"
+                                                onClick={() => { setSourceChain(net.id); setIsSourceOpen(false); }}
+                                                className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-secondary ${sourceChain === net.id ? "text-primary bg-primary/5 font-medium" : "text-foreground"}`}
+                                            >
+                                                {net.name} ({net.id})
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
+                            {/* Arrow Swap Button */}
                             <button
                                 type="button"
-                                onClick={() => setDirection(d => d === "RelayToAssetHub" ? "AssetHubToRelay" : "RelayToAssetHub")}
-                                className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center hover:bg-secondary transition-colors z-10 shadow-sm"
-                                disabled={status !== "idle" && status !== "error"}
+                                onClick={() => {
+                                    // Actually swap the chains!
+                                    const temp = sourceChain;
+                                    setSourceChain(destChain);
+                                    setDestChain(temp);
+                                }}
+                                className="w-10 h-10 rounded-full bg-background border border-border flex items-center justify-center shadow-sm shrink-0 z-10 sm:static absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:translate-x-0 sm:translate-y-0 hover:bg-secondary transition-colors"
                             >
-                                <ArrowRight className={`w-5 h-5 text-muted transition-transform ${direction === "AssetHubToRelay" ? "rotate-180" : ""}`} />
+                                <ArrowRightLeft className="w-4 h-4 text-muted hidden sm:block" />
+                                <ArrowDown className="w-4 h-4 text-muted sm:hidden block" />
                             </button>
 
-                            <div className={`p-4 rounded-xl flex-1 text-right border transition-colors ${direction === "AssetHubToRelay" ? "bg-primary/5 border-primary/20" : "bg-card border-border"}`}>
-                                <p className="text-xs text-muted mb-1">To Network</p>
-                                <p className="font-medium text-foreground">{direction === "RelayToAssetHub" ? "Asset Hub (1000)" : "Westend Relay"}</p>
+                            {/* Destination Selection */}
+                            <div className="p-4 rounded-xl flex-1 border border-border bg-card w-full text-left sm:text-right relative">
+                                <label className="text-xs text-muted mb-2 block font-medium">To Network</label>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsDestOpen(!isDestOpen); setIsSourceOpen(false); }}
+                                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground focus:ring-1 focus:ring-primary focus:border-primary outline-none flex items-center justify-between sm:flex-row-reverse"
+                                    disabled={status !== "idle" && status !== "error"}
+                                    dir="ltr"
+                                >
+                                    <span>
+                                        {destChain === 0 ? "Westend Relay" :
+                                            destChain === 1000 ? "Asset Hub" :
+                                                destChain === 1002 ? "Bridge Hub" : "Coretime"} ({destChain})
+                                    </span>
+                                    <ChevronDown className="w-4 h-4 text-muted" />
+                                </button>
+
+                                {/* Dest Dropdown Menu */}
+                                {isDestOpen && status === "idle" && (
+                                    <div className="absolute top-[calc(100%+0.5rem)] left-0 w-full bg-card border border-border rounded-lg shadow-xl z-50 overflow-hidden text-left">
+                                        {[
+                                            { id: 0, name: "Westend Relay" },
+                                            { id: 1000, name: "Asset Hub" },
+                                            { id: 1002, name: "Bridge Hub" },
+                                            { id: 1005, name: "Coretime" }
+                                        ].map((net) => (
+                                            <button
+                                                key={net.id}
+                                                type="button"
+                                                onClick={() => { setDestChain(net.id); setIsDestOpen(false); }}
+                                                className={`w-full text-left sm:text-right px-4 py-3 text-sm transition-colors hover:bg-secondary ${destChain === net.id ? "text-primary bg-primary/5 font-medium" : "text-foreground"}`}
+                                            >
+                                                {net.name} ({net.id})
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

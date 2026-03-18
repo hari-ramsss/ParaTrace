@@ -43,6 +43,16 @@ const MONITORED_CHAINS = [
     name: config.CHAIN_NAMES.ASSET_HUB,
     parachainId: 1000,   // Asset Hub parachain ID
   },
+  {
+    wsRpc: config.BRIDGE_HUB_WS_RPC,
+    name: config.CHAIN_NAMES.BRIDGE_HUB,
+    parachainId: 1002,   // Bridge Hub parachain ID
+  },
+  {
+    wsRpc: config.CORETIME_WS_RPC,
+    name: config.CHAIN_NAMES.CORETIME,
+    parachainId: 1005,   // Coretime parachain ID
+  },
 ];
 
 // ─── Single chain listener ─────────────────────────────────────────────────

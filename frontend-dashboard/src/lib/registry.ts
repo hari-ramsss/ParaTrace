@@ -84,7 +84,7 @@ export async function getRecentTransactions(count: number = 20): Promise<Transac
     const contract = getContract();
     const provider = getProvider();
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = Math.max(0, currentBlock - 100000); // last ~100000 blocks
+    const fromBlock = Math.max(0, currentBlock - 500000); // last ~500000 blocks
 
     const filter = contract.filters.TransactionRecorded();
     const events = await contract.queryFilter(filter, fromBlock, currentBlock);
@@ -110,7 +110,7 @@ export async function getFlaggedWallets(): Promise<FlaggedEvent[]> {
     const contract = getContract();
     const provider = getProvider();
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = Math.max(0, currentBlock - 50000);
+    const fromBlock = Math.max(0, currentBlock - 500000);
 
     const filter = contract.filters.WalletFlagged();
     const events = await contract.queryFilter(filter, fromBlock, currentBlock);
@@ -130,7 +130,7 @@ export async function getDashboardStats() {
     const contract = getContract();
     const provider = getProvider();
     const currentBlock = await provider.getBlockNumber();
-    const fromBlock = Math.max(0, currentBlock - 100000);
+    const fromBlock = Math.max(0, currentBlock - 500000);
 
     const [txEvents, flagEvents] = await Promise.all([
         contract.queryFilter(contract.filters.TransactionRecorded(), fromBlock, currentBlock),
@@ -163,11 +163,14 @@ export async function getDashboardStats() {
 
     const allTransactions = txEvents.map(mapEvent);
 
+    // Create a safe copy before reversing to prevent in-place mutation bugs
+    const reversedTx = [...allTransactions].reverse();
+
     return {
         totalTransactions: txEvents.length,
         totalWallets: uniqueWallets.size,
         flaggedCount: flaggedWallets.size,
-        recentTransactions: allTransactions.slice(-5).reverse(),
-        allTransactions: allTransactions.reverse(),
+        recentTransactions: reversedTx.slice(0, 5),
+        allTransactions: reversedTx,
     };
 }
