@@ -1,0 +1,48 @@
+# ─── ParaTrace — Chopsticks XCM Simulation Config ────────────────────────────
+#
+# Chopsticks lets you fork a live chain locally and replay/simulate
+# XCM messages without spending real funds.
+#
+# Reference: https://docs.polkadot.com/parachains/testing/fork-a-parachain/
+#
+# Usage (one-liner):
+#   npx @acala-network/chopsticks xcm \
+#     --parachain=wss://asset-hub-paseo-rpc.polkadot.io \
+#     --relaychain=wss://paseo-rpc.polkadot.io
+#
+# Usage (this config file):
+#   npx @acala-network/chopsticks xcm --config zombienet/chopsticks.yml
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Relay chain: Paseo testnet (closest to Polkadot for XCM testing, free)
+relaychain:
+  endpoint: wss://paseo-rpc.polkadot.io
+  # Chopsticks forks at the latest block by default.
+  # Uncomment to pin to a specific block for reproducible tests:
+  # block: 0x<block-hash>
+
+  # Expose a local HTTP port so hardhat/ethers can also interact
+  port: 8001
+
+  # Enable mock host signatures for test accounts (Alice, Bob, etc.)
+  mockSignatureHost: true
+
+  # Local DB for block cache — makes re-runs faster
+  db: ./.chopsticks-relay.db
+
+# Parachains to simulate alongside the relay chain
+parachains:
+  # Asset Hub (parachain 1000 on Paseo)
+  - endpoint: wss://asset-hub-paseo-rpc.polkadot.io
+    port: 8002
+    mockSignatureHost: true
+    db: ./.chopsticks-asset-hub.db
+    # Override storage values — useful for giving test accounts funds
+    # without a faucet:
+    storageValues:
+      System.Account:
+        # Give Alice a large balance for XCM fee payment
+        "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d":
+          data:
+            free: "0x000000000000000DE0B6B3A7640000"

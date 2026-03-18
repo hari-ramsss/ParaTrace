@@ -1,0 +1,26 @@
+# Zombienet logs and temporary files
+logs/
+*.log
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Chopsticks database files
+.chopsticks-*.db
+
+# Zombienet temporary directories
+/tmp/zombie-*
+
+# PID files
+*.pid
+
+# MacOS
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

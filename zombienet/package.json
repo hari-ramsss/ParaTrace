@@ -1,0 +1,32 @@
+{
+  "name": "paratrace-zombienet-tests",
+  "version": "1.0.0",
+  "description": "Local testing infrastructure for ParaTrace using Zombienet",
+  "private": true,
+  "scripts": {
+    "start": "bash ./start-local-stack.sh",
+    "stop": "bash ./stop-local-stack.sh",
+    "health": "bash ./health-check.sh",
+    "test": "bash ./run-all-tests.sh",
+    "test:xcm": "node xcm-test.js",
+    "test:smoke": "zombienet test paratrace.zndsl",
+    "chopsticks": "npx @acala-network/chopsticks xcm --config chopsticks.yml"
+  },
+  "dependencies": {
+    "@polkadot/api": "^12.0.0",
+    "@polkadot/keyring": "^12.6.0",
+    "@polkadot/util-crypto": "^12.6.0"
+  },
+  "devDependencies": {
+    "@acala-network/chopsticks": "^0.15.0"
+  },
+  "keywords": [
+    "polkadot",
+    "zombienet",
+    "xcm",
+    "testing",
+    "parachain"
+  ],
+  "author": "ParaTrace Team",
+  "license": "MIT"
+}

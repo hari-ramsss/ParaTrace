@@ -1,0 +1,48 @@
+# ─── ParaTrace Local Testnet — Zombienet Configuration ──────────────────────
+#
+# Spawns a minimal Polkadot-like network for local end-to-end testing:
+#   • Relay chain  : rococo-local  (Alice + Bob validators)
+#   • Parachain 1000: Asset Hub    (single collator)
+#
+# Prerequisites (see zombienet/README.md for download commands):
+#   polkadot             >= 1.15   (relay chain node)
+#   polkadot-parachain   >= 1.15   (Asset Hub / cumulus collator)
+#   zombienet            >= 0.3.4  (orchestrator)
+#
+# Usage:
+#   zombienet spawn zombienet/paratrace.toml --provider native
+# ─────────────────────────────────────────────────────────────────────────────
+
+[settings]
+timeout = 1000
+
+# ─── Relay Chain ─────────────────────────────────────────────────────────────
+[relaychain]
+default_command = "polkadot"
+chain             = "rococo-local"
+
+  # Alice — primary validator + well-known RPC port so we can script against it
+  [[relaychain.nodes]]
+  name     = "alice"
+  validator = true
+  rpc_port  = 9944
+  ws_port   = 9955
+
+  # Bob — second validator for consensus
+  [[relaychain.nodes]]
+  name     = "bob"
+  validator = true
+  rpc_port  = 9946
+  ws_port   = 9956
+
+# ─── Asset Hub (Parachain 1000) ───────────────────────────────────────────────
+[[parachains]]
+id    = 1000
+chain = "asset-hub-rococo-local"
+
+  [parachains.collator]
+  name    = "asset-hub-collator"
+  command = "polkadot-parachain"
+  # Fixed RPC port so eth-rpc adapter and the indexer always know where to connect
+  rpc_port = 9988
+  ws_port  = 9989

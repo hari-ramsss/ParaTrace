@@ -25,9 +25,20 @@ const config: HardhatUserConfig = {
             },
             url: "http://127.0.0.1:8545",
         },
+        // ── Zombienet local network ─────────────────────────────────────────
+        // Relay chain (rococo-local) + Asset Hub (parachain 1000) spun up via:
+        //   bash zombienet/start-local-stack.sh
+        // eth-rpc adapter must be running on port 8545 (started by the script).
+        // Uses the same port as localNode so existing deploy/test scripts work.
+        zombienet: {
+            polkadot: {
+                target: "pvm",
+            },
+            url: "http://127.0.0.1:8545",
+        },
         polkadotHubTestnet: {
             polkadot: {
-                target: "pvm", 
+                target: "pvm",
             },
             url: "https://eth-rpc-testnet.polkadot.io/",
             accounts: [vars.get("PRIVATE_KEY")],
