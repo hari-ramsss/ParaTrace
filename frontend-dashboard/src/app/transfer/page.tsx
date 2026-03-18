@@ -310,12 +310,12 @@ export default function TransferPage() {
                                 <h4 className="text-emerald-400 font-medium mb-1">XCM Message Dispatched</h4>
                                 <p className="text-sm text-emerald-500/80 mb-3">Head over to the Dashboard to watch your ParaTrace indexer catch it live!</p>
                                 <a
-                                    href={`https://westend.subscan.io/extrinsic/${txHash}`}
+                                    href={`${sourceChain === 1000 ? "https://assethub-westend.subscan.io" : sourceChain === 1002 ? "https://bridgehub-westend.subscan.io" : "https://westend.subscan.io"}/block/${txHash}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     className="text-xs text-white underline opacity-70 hover:opacity-100 transition-opacity"
                                 >
-                                    View on Subscan
+                                    View Block on Subscan
                                 </a>
                             </div>
                         )}

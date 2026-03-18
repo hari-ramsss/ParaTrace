@@ -35,18 +35,18 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
         );
     }
 
-    // Prepare scatter data: X = Risk Score, Y = Volume (in PAS)
+    // Prepare scatter data: X = Risk Score, Y = Volume (in WND)
     // We only take the last 100 transactions to avoid cluttering
     const data = transactions.slice(0, 100).map((tx, i) => ({
         id: i,
         x: tx.newScore,
-        y: Number(tx.amount) / 1e12, // Convert to PAS units (assuming 12 decimals)
+        y: Number(tx.amount) / 1e12, // Convert to WND units (assuming 12 decimals)
     }));
 
     return (
         <div ref={containerRef} className="rounded-2xl border border-border bg-card p-6">
             <h3 className="text-xl font-bold text-foreground mb-1">Outlier Analysis</h3>
-            <p className="text-xs text-muted mb-4 font-dm-sans">Value (PAS) vs Risk Score</p>
+            <p className="text-xs text-muted mb-4 font-dm-sans">Value (WND) vs Risk Score</p>
 
             <div className="flex items-center justify-center overflow-hidden">
                 <ScatterChart
@@ -70,7 +70,7 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
                     ]}
                     yAxis={[
                         {
-                            label: "Volume (PAS)",
+                            label: "Volume (WND)",
                             tickLabelStyle: { fill: "#6b7280", fontSize: 10 },
                             labelStyle: { fill: "#6b7280", fontSize: 11 },
                         },

@@ -10,11 +10,11 @@ export function truncateAddress(address: string, chars: number = 6): string {
 }
 
 /**
- * Format volume from wei to human-readable PAS.
+ * Format volume from raw units to human-readable WND (12 decimals).
  */
 export function formatVolume(volume: bigint | string): string {
     try {
-        return parseFloat(ethers.formatEther(volume)).toFixed(2);
+        return parseFloat(ethers.formatUnits(volume, 12)).toFixed(2);
     } catch {
         return "0.00";
     }

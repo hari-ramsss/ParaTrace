@@ -7,7 +7,8 @@ import RiskGauge from "@/components/RiskGauge";
 import WalletRiskRadar from "@/components/WalletRiskRadar";
 import { getFullProfile, getRecentTransactions, type WalletProfile, type TransactionEvent } from "@/lib/registry";
 import { formatVolume, formatTimestamp, formatDuration, getChainName } from "@/lib/utils";
-import { getRiskLevel } from "@/lib/constants";
+import { getRiskLevel, getChainExplorerUrl } from "@/lib/constants";
+import Tooltip from "@mui/material/Tooltip";
 
 export default function WalletLookupContent() {
     const searchParams = useSearchParams();
@@ -148,7 +149,7 @@ export default function WalletLookupContent() {
 
                     {/* Behavioral Breakdown */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <InfoCard label="Total Volume" value={`${formatVolume(profile.totalVolume)} PAS`} />
+                        <InfoCard label="Total Volume" value={`${formatVolume(profile.totalVolume)} WND`} />
                         <InfoCard label="Transaction Count" value={profile.txCount.toString()} />
                         <InfoCard label="Avg Time Between Txs" value={formatDuration(profile.avgTimeBetweenTxs)} />
                         <InfoCard label="Unique Chains" value={profile.uniqueChains.toString()} />
@@ -187,34 +188,50 @@ export default function WalletLookupContent() {
                             <div className="space-y-2">
                                 {walletTxs.map((tx, i) => {
                                     const level = getRiskLevel(tx.newScore);
+                                    const sourceName = getChainName(tx.sourceChain);
+                                    const destName = getChainName(tx.destChain);
+                                    const sourceExplorer = getChainExplorerUrl(tx.sourceChain);
+                                    const destExplorer = getChainExplorerUrl(tx.destChain);
                                     return (
-                                        <div
+                                        <Tooltip
                                             key={`${tx.transactionHash}-${i}`}
-                                            className="flex items-center justify-between p-3 rounded-xl bg-background hover:bg-secondary transition-colors border border-transparent hover:border-border"
+                                            title={
+                                                <span>
+                                                    View on Subscan:<br />
+                                                    • {sourceName}: {new URL(sourceExplorer).hostname}<br />
+                                                    • {destName}: {new URL(destExplorer).hostname}
+                                                </span>
+                                            }
+                                            arrow
+                                            placement="top"
                                         >
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-2 h-2 rounded-full shrink-0"
-                                                    style={{ backgroundColor: level.color }}
-                                                />
-                                                <div>
-                                                    <p className="text-sm text-foreground">
-                                                        {getChainName(tx.sourceChain)} → {getChainName(tx.destChain)}
+                                            <div
+                                                className="flex items-center justify-between p-3 rounded-xl bg-background hover:bg-secondary transition-colors border border-transparent hover:border-border cursor-default"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div
+                                                        className="w-2 h-2 rounded-full shrink-0"
+                                                        style={{ backgroundColor: level.color }}
+                                                    />
+                                                    <div>
+                                                        <p className="text-sm text-foreground">
+                                                            {sourceName} → {destName}
+                                                        </p>
+                                                        <p className="text-xs text-muted font-mono">
+                                                            Block #{tx.blockNumber}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm text-foreground font-medium">
+                                                        {formatVolume(tx.amount)} WND
                                                     </p>
-                                                    <p className="text-xs text-muted font-mono">
-                                                        Block #{tx.blockNumber}
+                                                    <p className="text-xs" style={{ color: level.color }}>
+                                                        Score: {tx.newScore}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-sm text-foreground font-medium">
-                                                    {formatVolume(tx.amount)} PAS
-                                                </p>
-                                                <p className="text-xs" style={{ color: level.color }}>
-                                                    Score: {tx.newScore}
-                                                </p>
-                                            </div>
-                                        </div>
+                                        </Tooltip>
                                     );
                                 })}
                             </div>

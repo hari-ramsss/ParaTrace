@@ -48,3 +48,16 @@ export function getRiskLevel(score: number) {
   if (score <= RISK_LEVELS.MEDIUM.max) return RISK_LEVELS.MEDIUM;
   return RISK_LEVELS.HIGH;
 }
+
+// Chain slot ID → block explorer base URL
+export const CHAIN_EXPLORER_URLS: Record<number, string> = {
+  0: "https://westend.subscan.io",               // Polkadot Hub (Westend)
+  1: "https://assethub-westend.subscan.io",      // Asset Hub
+  2: "https://bridgehub-westend.subscan.io",     // Bridge Hub
+  3: "https://westend.subscan.io",               // People Chain (Westend)
+  4: "https://westend.subscan.io",               // Coretime (Westend)
+};
+
+export function getChainExplorerUrl(slot: number): string {
+  return CHAIN_EXPLORER_URLS[slot] || "https://westend.subscan.io";
+}

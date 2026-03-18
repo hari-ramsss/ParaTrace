@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowRight } from "lucide-react";
 import { getRecentTransactions, type TransactionEvent } from "@/lib/registry";
 import { truncateAddress, formatVolume, getChainName } from "@/lib/utils";
-import { getRiskLevel } from "@/lib/constants";
+import { getRiskLevel, getChainExplorerUrl } from "@/lib/constants";
+import Tooltip from "@mui/material/Tooltip";
 import Link from "next/link";
 
 export default function TransactionsPage() {
@@ -77,41 +78,58 @@ export default function TransactionsPage() {
                             <tbody>
                                 {transactions.map((tx, i) => {
                                     const level = getRiskLevel(tx.newScore);
+                                    const sourceName = getChainName(tx.sourceChain);
+                                    const destName = getChainName(tx.destChain);
+                                    const sourceExplorer = getChainExplorerUrl(tx.sourceChain);
+                                    const destExplorer = getChainExplorerUrl(tx.destChain);
                                     return (
-                                        <tr
+                                        <Tooltip
                                             key={`${tx.transactionHash}-${i}`}
-                                            className="border-b border-border hover:bg-secondary transition-colors"
-                                        >
-                                            <td className="px-6 py-4">
-                                                <Link href={`/wallet?address=${tx.wallet}`} className="hover:text-primary transition-colors hover:underline break-all">
-                                                    {tx.wallet}
-                                                </Link>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-center gap-2 text-sm">
-                                                    <span className="text-foreground">{getChainName(tx.sourceChain)}</span>
-                                                    <ArrowRight className="w-3 h-3 text-muted" />
-                                                    <span className="text-foreground">{getChainName(tx.destChain)}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-right text-sm text-foreground font-medium">
-                                                {formatVolume(tx.amount)} PAS
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <span
-                                                    className="inline-block px-3 py-1 rounded-full text-xs font-bold"
-                                                    style={{
-                                                        color: level.color,
-                                                        background: `${level.color}15`,
-                                                    }}
-                                                >
-                                                    {tx.newScore}
+                                            title={
+                                                <span>
+                                                    View on Subscan:<br />
+                                                    • {sourceName}: {new URL(sourceExplorer).hostname}<br />
+                                                    • {destName}: {new URL(destExplorer).hostname}
                                                 </span>
-                                            </td>
-                                            <td className="px-6 py-4 text-right text-sm text-muted font-mono">
-                                                #{tx.blockNumber}
-                                            </td>
-                                        </tr>
+                                            }
+                                            arrow
+                                            placement="top"
+                                            followCursor
+                                        >
+                                            <tr
+                                                className="border-b border-border hover:bg-secondary transition-colors cursor-default"
+                                            >
+                                                <td className="px-6 py-4">
+                                                    <Link href={`/wallet?address=${tx.wallet}`} className="hover:text-primary transition-colors hover:underline break-all">
+                                                        {tx.wallet}
+                                                    </Link>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center justify-center gap-2 text-sm">
+                                                        <span className="text-foreground">{sourceName}</span>
+                                                        <ArrowRight className="w-3 h-3 text-muted" />
+                                                        <span className="text-foreground">{destName}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right text-sm text-foreground font-medium">
+                                                    {formatVolume(tx.amount)} WND
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <span
+                                                        className="inline-block px-3 py-1 rounded-full text-xs font-bold"
+                                                        style={{
+                                                            color: level.color,
+                                                            background: `${level.color}15`,
+                                                        }}
+                                                    >
+                                                        {tx.newScore}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-right text-sm text-muted font-mono">
+                                                    #{tx.blockNumber}
+                                                </td>
+                                            </tr>
+                                        </Tooltip>
                                     );
                                 })}
                             </tbody>
