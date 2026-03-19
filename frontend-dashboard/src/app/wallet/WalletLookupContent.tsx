@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import { Search, ArrowRight, ArrowDownUp } from "lucide-react";
+import { Search, ArrowRight, History, AlertTriangle } from "lucide-react";
+import Alert from "@/components/Alert";
 import RiskGauge from "@/components/RiskGauge";
 import WalletRiskRadar from "@/components/WalletRiskRadar";
 import { getFullProfile, getRecentTransactions, type WalletProfile, type TransactionEvent } from "@/lib/registry";
@@ -18,6 +19,9 @@ export default function WalletLookupContent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [searched, setSearched] = useState(false);
+    const [partialData, setPartialData] = useState(false);
+    const [failedChunks, setFailedChunks] = useState(0);
+    const [totalChunks, setTotalChunks] = useState(0);
 
     const doSearch = useCallback(async (addr: string) => {
         if (!addr.trim()) return;
@@ -26,16 +30,24 @@ export default function WalletLookupContent() {
         setError(null);
         setSearched(true);
         setAddress(addr);
+        setPartialData(false);
 
         try {
-            const [data, allTxs] = await Promise.all([
+            const [data, result] = await Promise.all([
                 getFullProfile(addr.trim()),
                 getRecentTransactions(50),
             ]);
+
+            if (result.metadata.isPartial) {
+                setPartialData(true);
+                setFailedChunks(result.metadata.failedChunks);
+                setTotalChunks(result.metadata.totalChunks);
+            }
+
             setProfile(data);
 
             // Filter transactions for this wallet
-            const filtered = allTxs.filter(
+            const filtered = result.events.filter(
                 (tx) => tx.wallet.toLowerCase() === addr.trim().toLowerCase()
             );
             setWalletTxs(filtered);
@@ -105,9 +117,22 @@ export default function WalletLookupContent() {
 
             {/* Error */}
             {error && (
-                <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {error}
-                </div>
+                <Alert
+                    variant="error"
+                    title="Error"
+                    message={error}
+                    icon={<AlertTriangle className="w-5 h-5" />}
+                />
+            )}
+
+            {/* Partial Data Warning */}
+            {partialData && profile && (
+                <Alert
+                    variant="warning"
+                    title="Partial Data Loaded"
+                    message={`Some transaction history could not be loaded (${failedChunks} of ${totalChunks} chunks failed). Transaction history may be incomplete.`}
+                    icon={<AlertTriangle className="w-5 h-5" />}
+                />
             )}
 
             {/* Results */}
@@ -177,7 +202,7 @@ export default function WalletLookupContent() {
                     {/* Transaction History */}
                     <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
-                            <ArrowDownUp className="w-4 h-4 text-muted" />
+                            <History className="w-4 h-4 text-muted" />
                             <h3 className="text-lg font-semibold text-foreground">Transaction History</h3>
                         </div>
                         {walletTxs.length === 0 ? (

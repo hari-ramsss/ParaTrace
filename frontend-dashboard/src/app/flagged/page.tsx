@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
+import Alert from "@/components/Alert";
 import { getFlaggedWallets, type FlaggedEvent } from "@/lib/registry";
 import { truncateAddress } from "@/lib/utils";
 import { getRiskLevel } from "@/lib/constants";
@@ -11,12 +12,22 @@ export default function FlaggedWalletsPage() {
     const [flagged, setFlagged] = useState<FlaggedEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [partialData, setPartialData] = useState(false);
+    const [failedChunks, setFailedChunks] = useState(0);
+    const [totalChunks, setTotalChunks] = useState(0);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const data = await getFlaggedWallets();
-                setFlagged(data);
+                const result = await getFlaggedWallets();
+
+                if (result.metadata.isPartial) {
+                    setPartialData(true);
+                    setFailedChunks(result.metadata.failedChunks);
+                    setTotalChunks(result.metadata.totalChunks);
+                }
+
+                setFlagged(result.events);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to fetch");
             } finally {
@@ -25,6 +36,13 @@ export default function FlaggedWalletsPage() {
         }
         fetchData();
     }, []);
+
+    const handleRetry = () => {
+        setError(null);
+        setPartialData(false);
+        setLoading(true);
+        window.location.reload();
+    };
 
     return (
         <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
@@ -39,10 +57,30 @@ export default function FlaggedWalletsPage() {
                 </div>
             </div>
 
-            {error && (
-                <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {error}
-                </div>
+            {error && !flagged.length && (
+                <Alert
+                    variant="error"
+                    title="Connection Error"
+                    message="Unable to fetch flagged wallet data. Please check your connection."
+                    icon={<AlertTriangle className="w-5 h-5" />}
+                    action={{
+                        label: "Retry",
+                        onClick: handleRetry
+                    }}
+                />
+            )}
+
+            {partialData && flagged.length > 0 && (
+                <Alert
+                    variant="warning"
+                    title="Partial Data Loaded"
+                    message={`Some flagged wallet data could not be loaded (${failedChunks} of ${totalChunks} chunks failed). Showing ${flagged.length} flagged wallets from available blocks.`}
+                    icon={<AlertTriangle className="w-5 h-5" />}
+                    action={{
+                        label: "Retry",
+                        onClick: handleRetry
+                    }}
+                />
             )}
 
             {/* Table */}

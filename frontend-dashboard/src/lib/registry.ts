@@ -50,6 +50,75 @@ export interface FlaggedEvent {
     transactionHash: string;
 }
 
+export interface QueryMetadata {
+    failedChunks: number;
+    totalChunks: number;
+    isPartial: boolean;
+}
+
+// ─── Chunked Query Helper ────────────────────────────────────────────
+
+async function queryLogsInChunks(
+    contract: ethers.Contract,
+    filter: ethers.DeferredTopicFilter,
+    fromBlock: number,
+    toBlock: number,
+    chunkSize: number = 5000,
+    onProgress?: (current: number, total: number) => void
+): Promise<{
+    logs: ethers.Log[];
+    failedChunks: number;
+    totalChunks: number;
+    isPartial: boolean;
+}> {
+    const chunks: Array<{ start: number; end: number }> = [];
+
+    // Prepare all chunk ranges
+    for (let start = fromBlock; start <= toBlock; start += chunkSize) {
+        const end = Math.min(start + chunkSize - 1, toBlock);
+        chunks.push({ start, end });
+    }
+
+    // Query all chunks in parallel with concurrency limit
+    const BATCH_SIZE = 10; // Process 10 chunks at a time
+    const allLogs: ethers.Log[] = [];
+    let failedChunks = 0;
+    let processedChunks = 0;
+
+    for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+        const batch = chunks.slice(i, i + BATCH_SIZE);
+
+        const results = await Promise.allSettled(
+            batch.map(({ start, end }) =>
+                contract.queryFilter(filter, start, end)
+            )
+        );
+
+        results.forEach((result, idx) => {
+            processedChunks++;
+            if (result.status === "fulfilled") {
+                allLogs.push(...result.value);
+            } else {
+                failedChunks++;
+                const chunk = batch[idx];
+                console.warn(`⚠️ Failed to fetch logs from ${chunk.start} to ${chunk.end}`, result.reason);
+            }
+        });
+
+        // Report progress
+        if (onProgress) {
+            onProgress(processedChunks, chunks.length);
+        }
+    }
+
+    return {
+        logs: allLogs,
+        failedChunks,
+        totalChunks: chunks.length,
+        isPartial: failedChunks > 0,
+    };
+}
+
 // ─── Read Functions ──────────────────────────────────────────────────
 
 export async function getFullProfile(address: string): Promise<WalletProfile> {
@@ -80,16 +149,24 @@ export async function isWalletFlagged(address: string): Promise<boolean> {
 
 // ─── Event Queries ──────────────────────────────────────────────────
 
-export async function getRecentTransactions(count: number = 20): Promise<TransactionEvent[]> {
+export async function getRecentTransactions(
+    count: number = 20
+): Promise<{ events: TransactionEvent[]; metadata: QueryMetadata }> {
     const contract = getContract();
     const provider = getProvider();
     const currentBlock = await provider.getBlockNumber();
     const fromBlock = Math.max(0, currentBlock - 500000); // last ~500000 blocks
 
     const filter = contract.filters.TransactionRecorded();
-    const events = await contract.queryFilter(filter, fromBlock, currentBlock);
+    const { logs, failedChunks, totalChunks, isPartial } = await queryLogsInChunks(
+        contract,
+        filter,
+        fromBlock,
+        currentBlock,
+        5000
+    );
 
-    return events
+    const events = logs
         .slice(-count)
         .reverse()
         .map((e) => {
@@ -104,18 +181,32 @@ export async function getRecentTransactions(count: number = 20): Promise<Transac
                 transactionHash: log.transactionHash,
             };
         });
+
+    return {
+        events,
+        metadata: { failedChunks, totalChunks, isPartial },
+    };
 }
 
-export async function getFlaggedWallets(): Promise<FlaggedEvent[]> {
+export async function getFlaggedWallets(): Promise<{
+    events: FlaggedEvent[];
+    metadata: QueryMetadata;
+}> {
     const contract = getContract();
     const provider = getProvider();
     const currentBlock = await provider.getBlockNumber();
     const fromBlock = Math.max(0, currentBlock - 500000);
 
     const filter = contract.filters.WalletFlagged();
-    const events = await contract.queryFilter(filter, fromBlock, currentBlock);
+    const { logs, failedChunks, totalChunks, isPartial } = await queryLogsInChunks(
+        contract,
+        filter,
+        fromBlock,
+        currentBlock,
+        5000
+    );
 
-    return events.reverse().map((e) => {
+    const events = logs.reverse().map((e) => {
         const log = e as ethers.EventLog;
         return {
             wallet: log.args[0],
@@ -124,18 +215,38 @@ export async function getFlaggedWallets(): Promise<FlaggedEvent[]> {
             transactionHash: log.transactionHash,
         };
     });
+
+    return {
+        events,
+        metadata: { failedChunks, totalChunks, isPartial },
+    };
 }
 
-export async function getDashboardStats() {
+export async function getDashboardStats(): Promise<{
+    totalTransactions: number;
+    totalWallets: number;
+    flaggedCount: number;
+    recentTransactions: TransactionEvent[];
+    allTransactions: TransactionEvent[];
+    metadata: QueryMetadata;
+}> {
     const contract = getContract();
     const provider = getProvider();
     const currentBlock = await provider.getBlockNumber();
     const fromBlock = Math.max(0, currentBlock - 500000);
 
-    const [txEvents, flagEvents] = await Promise.all([
-        contract.queryFilter(contract.filters.TransactionRecorded(), fromBlock, currentBlock),
-        contract.queryFilter(contract.filters.WalletFlagged(), fromBlock, currentBlock),
+    const [txResult, flagResult] = await Promise.all([
+        queryLogsInChunks(contract, contract.filters.TransactionRecorded(), fromBlock, currentBlock, 5000),
+        queryLogsInChunks(contract, contract.filters.WalletFlagged(), fromBlock, currentBlock, 5000),
     ]);
+
+    const txEvents = txResult.logs;
+    const flagEvents = flagResult.logs;
+
+    // Combine metadata from both queries
+    const combinedFailedChunks = txResult.failedChunks + flagResult.failedChunks;
+    const combinedTotalChunks = txResult.totalChunks + flagResult.totalChunks;
+    const isPartial = txResult.isPartial || flagResult.isPartial;
 
     // Count unique wallets
     const uniqueWallets = new Set(
@@ -172,5 +283,10 @@ export async function getDashboardStats() {
         flaggedCount: flaggedWallets.size,
         recentTransactions: reversedTx.slice(0, 5),
         allTransactions: reversedTx,
+        metadata: {
+            failedChunks: combinedFailedChunks,
+            totalChunks: combinedTotalChunks,
+            isPartial,
+        },
     };
 }

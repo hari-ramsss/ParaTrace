@@ -3,17 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield, Menu, X, Activity, Users, AlertTriangle, Search, Sun, Moon, Wallet, LogOut, ChevronDown } from "lucide-react";
+import { Shield, Menu, X, LayoutDashboard, Users, AlertTriangle, Search, Sun, Moon, Wallet, LogOut, ChevronDown, List, Zap } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useWallet } from "./WalletProvider";
 import { truncateAddress } from "@/lib/utils";
 
 const NAV_ITEMS = [
-    { href: "/", label: "Dashboard", icon: Activity },
+    { href: "/", label: "Dashboard", icon: LayoutDashboard },
     { href: "/wallet", label: "Wallet Lookup", icon: Search },
     { href: "/flagged", label: "Flagged Wallets", icon: AlertTriangle },
-    { href: "/transactions", label: "Transactions", icon: Activity },
-    { href: "/transfer", label: "Live Demo", icon: Activity },
+    { href: "/transactions", label: "Transactions", icon: List },
+    { href: "/transfer", label: "Live Demo", icon: Zap },
 ];
 
 export default function Navbar() {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, ArrowRight } from "lucide-react";
+import { ArrowRightLeft, ArrowRight, AlertTriangle } from "lucide-react";
+import Alert from "@/components/Alert";
 import { getRecentTransactions, type TransactionEvent } from "@/lib/registry";
 import { truncateAddress, formatVolume, getChainName } from "@/lib/utils";
 import { getRiskLevel, getChainExplorerUrl, getBlockscoutTxUrl } from "@/lib/constants";
@@ -12,12 +13,22 @@ export default function TransactionsPage() {
     const [transactions, setTransactions] = useState<TransactionEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [partialData, setPartialData] = useState(false);
+    const [failedChunks, setFailedChunks] = useState(0);
+    const [totalChunks, setTotalChunks] = useState(0);
 
     useEffect(() => {
         async function fetchData() {
             try {
-                const data = await getRecentTransactions(50);
-                setTransactions(data);
+                const result = await getRecentTransactions(50);
+
+                if (result.metadata.isPartial) {
+                    setPartialData(true);
+                    setFailedChunks(result.metadata.failedChunks);
+                    setTotalChunks(result.metadata.totalChunks);
+                }
+
+                setTransactions(result.events);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to fetch");
             } finally {
@@ -30,12 +41,19 @@ export default function TransactionsPage() {
         return () => clearInterval(interval);
     }, []);
 
+    const handleRetry = () => {
+        setError(null);
+        setPartialData(false);
+        setLoading(true);
+        window.location.reload();
+    };
+
     return (
         <div className="max-w-6xl mx-auto px-6 py-10 animate-fade-in">
             {/* Header */}
             <div className="mb-8 flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-primary/10">
-                    <Activity className="w-6 h-6 text-primary" />
+                    <ArrowRightLeft className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Transaction Feed</h1>
@@ -43,10 +61,30 @@ export default function TransactionsPage() {
                 </div>
             </div>
 
-            {error && (
-                <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    {error}
-                </div>
+            {error && !transactions.length && (
+                <Alert
+                    variant="error"
+                    title="Connection Error"
+                    message="Unable to fetch transaction data. Please check your connection."
+                    icon={<AlertTriangle className="w-5 h-5" />}
+                    action={{
+                        label: "Retry",
+                        onClick: handleRetry
+                    }}
+                />
+            )}
+
+            {partialData && transactions.length > 0 && (
+                <Alert
+                    variant="warning"
+                    title="Partial Data Loaded"
+                    message={`Some transaction data could not be loaded (${failedChunks} of ${totalChunks} chunks failed). Showing ${transactions.length} transactions from available blocks.`}
+                    icon={<AlertTriangle className="w-5 h-5" />}
+                    action={{
+                        label: "Retry",
+                        onClick: handleRetry
+                    }}
+                />
             )}
 
             {/* Table */}
@@ -59,7 +97,7 @@ export default function TransactionsPage() {
                     </div>
                 ) : transactions.length === 0 ? (
                     <div className="p-16 text-center text-muted">
-                        <Activity className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                        <ArrowRightLeft className="w-12 h-12 mx-auto mb-4 opacity-30" />
                         <p>No transactions recorded yet</p>
                         <p className="text-sm mt-1">Transactions will appear here once the indexer records XCM transfers</p>
                     </div>

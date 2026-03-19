@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Wallet, Activity, ArrowDown, ChevronDown, ArrowRightLeft, MousePointer2 } from "lucide-react";
+import { ArrowRight, Wallet, CheckCircle2, ArrowDown, ChevronDown, ArrowRightLeft, MousePointer2 } from "lucide-react";
 import { useWallet } from "@/components/WalletProvider";
 
 // Dynamic import for Polkadot API to avoid SSR issues
@@ -305,7 +305,7 @@ export default function TransferPage() {
                         {status === "success" && txHash && (
                             <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col items-center text-center animate-fade-in">
                                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center mb-3">
-                                    <Activity className="w-5 h-5 text-emerald-400" />
+                                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                                 </div>
                                 <h4 className="text-emerald-400 font-medium mb-1">XCM Message Dispatched</h4>
                                 <p className="text-sm text-emerald-500/80 mb-3">Head over to the Dashboard to watch your ParaTrace indexer catch it live!</p>

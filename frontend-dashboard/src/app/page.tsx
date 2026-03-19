@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Activity, Users, AlertTriangle, BarChart3 } from "lucide-react";
+import { ArrowRightLeft, Users, AlertTriangle, Gauge } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import RecentActivity from "@/components/RecentActivity";
 import RiskChart from "@/components/RiskChart";
 import RiskTrendChart from "@/components/ChainActivityChart";
+import Alert from "@/components/Alert";
 import { getDashboardStats, type TransactionEvent } from "@/lib/registry";
 import grained from "@/utils/grained";
 import Link from "next/link";
@@ -23,11 +24,22 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [partialData, setPartialData] = useState(false);
+  const [failedChunks, setFailedChunks] = useState(0);
+  const [totalChunks, setTotalChunks] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState("Loading dashboard data...");
 
   useEffect(() => {
     async function fetchData() {
       try {
         const stats = await getDashboardStats();
+
+        // Check if data is partial
+        if (stats.metadata.isPartial) {
+          setPartialData(true);
+          setFailedChunks(stats.metadata.failedChunks);
+          setTotalChunks(stats.metadata.totalChunks);
+        }
 
         // Compute risk distribution from transaction scores
         let low = 0, medium = 0, high = 0, totalScore = 0;
@@ -43,7 +55,11 @@ export default function DashboardPage() {
         }
 
         setData({
-          ...stats,
+          totalTransactions: stats.totalTransactions,
+          totalWallets: stats.totalWallets,
+          flaggedCount: stats.flaggedCount,
+          recentTransactions: stats.recentTransactions,
+          allTransactions: stats.allTransactions,
           riskDistribution: { low, medium, high },
           avgScore: walletScores.size > 0 ? Math.round(totalScore / walletScores.size) : 0,
         });
@@ -58,6 +74,13 @@ export default function DashboardPage() {
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleRetry = () => {
+    setError(null);
+    setPartialData(false);
+    setLoading(true);
+    window.location.reload();
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -102,10 +125,31 @@ export default function DashboardPage() {
       </div>
 
       {/* Error Banner */}
-      {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-          <strong>Connection Error:</strong> {error}. Make sure the RPC endpoint is reachable.
-        </div>
+      {error && !data && (
+        <Alert
+          variant="error"
+          title="Connection Error"
+          message="Unable to connect to the RPC endpoint. The network may be experiencing issues."
+          icon={<AlertTriangle className="w-5 h-5" />}
+          action={{
+            label: "Retry",
+            onClick: handleRetry
+          }}
+        />
+      )}
+
+      {/* Partial Data Warning */}
+      {partialData && data && (
+        <Alert
+          variant="warning"
+          title="Partial Data Loaded"
+          message={`Some historical data could not be loaded (${failedChunks} of ${totalChunks} chunks failed). Showing ${data.totalTransactions} transactions from available blocks.`}
+          icon={<AlertTriangle className="w-5 h-5" />}
+          action={{
+            label: "Retry",
+            onClick: handleRetry
+          }}
+        />
       )}
 
       {/* Stat Cards */}
@@ -114,7 +158,7 @@ export default function DashboardPage() {
           title="Total Transactions"
           value={loading ? "—" : data?.totalTransactions ?? 0}
           subtitle="Recorded XCM transfers"
-          icon={Activity}
+          icon={ArrowRightLeft}
         />
         <StatCard
           title="Wallets Monitored"
@@ -132,7 +176,7 @@ export default function DashboardPage() {
           title="Avg Risk Score"
           value={loading ? "—" : data?.avgScore ?? 0}
           subtitle="Across all wallets"
-          icon={BarChart3}
+          icon={Gauge}
         />
       </div>
 
