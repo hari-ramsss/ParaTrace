@@ -28,7 +28,7 @@ interface Link {
 }
 
 export default function ChainConnectionGraph({ walletAddress, transactions }: ChainConnectionGraphProps) {
-    const fgRef = useRef<ForceGraphMethods>();
+    const fgRef = useRef<ForceGraphMethods<any, any>>(undefined!);
     const containerRef = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 500 });
     const theme = useTheme();
