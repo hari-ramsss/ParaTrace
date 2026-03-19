@@ -23,10 +23,33 @@
 
 require('dotenv').config();
 
+const http = require('http');
 const logger = require('./logger');
 const registry = require('./registryClient');
 const { startAllListeners, stopAllListeners } = require('./xcmListener');
 const config = require('./config');
+
+// ─── Health check server ───────────────────────────────────────────────────
+let isHealthy = false;
+const PORT = process.env.PORT || 3000;
+
+const healthServer = http.createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: isHealthy ? 'healthy' : 'starting',
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString()
+    }));
+  } else {
+    res.writeHead(404);
+    res.end();
+  }
+});
+
+healthServer.listen(PORT, () => {
+  logger.info(`Health check server listening on port ${PORT}`);
+});
 
 // ─── Boot sequence ─────────────────────────────────────────────────────────
 
@@ -51,6 +74,8 @@ async function main() {
   let listeners = [];
   try {
     listeners = await startAllListeners();
+    isHealthy = true;
+    logger.info('✓ Indexer is now healthy and listening for XCM events');
   } catch (err) {
     logger.error(`Fatal: could not start listeners — ${err.message}`);
     process.exit(1);
@@ -59,8 +84,12 @@ async function main() {
   // ─── Graceful shutdown ────────────────────────────────────────────────────
   const shutdown = async (signal) => {
     logger.info(`Received ${signal} — shutting down …`);
+    isHealthy = false;
     await stopAllListeners(listeners);
-    process.exit(0);
+    healthServer.close(() => {
+      logger.info('Health server closed');
+      process.exit(0);
+    });
   };
 
   process.on('SIGINT',  () => shutdown('SIGINT'));

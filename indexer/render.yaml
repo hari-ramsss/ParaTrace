@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: paratrace-indexer
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RPC_WS_URL
+        sync: false
+      - key: REGISTRY_ADDRESS
+        sync: false
+      - key: PRIVATE_KEY
+        sync: false
+      - key: EVM_RPC_URL
+        sync: false
+      - key: ASSET_HUB_WSS
+        sync: false
+    autoDeploy: true
+    healthCheckPath: /health
