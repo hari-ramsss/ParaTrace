@@ -61,3 +61,10 @@ export const CHAIN_EXPLORER_URLS: Record<number, string> = {
 export function getChainExplorerUrl(slot: number): string {
   return CHAIN_EXPLORER_URLS[slot] || "https://westend.subscan.io";
 }
+
+// Blockscout EVM explorer for Polkadot Hub Testnet
+export const BLOCKSCOUT_BASE_URL = "https://blockscout-testnet.polkadot.io";
+
+export function getBlockscoutTxUrl(txHash: string): string {
+  return `${BLOCKSCOUT_BASE_URL}/tx/${txHash}`;
+}

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, ArrowRight } from "lucide-react";
 import { getRecentTransactions, type TransactionEvent } from "@/lib/registry";
 import { truncateAddress, formatVolume, getChainName } from "@/lib/utils";
-import { getRiskLevel, getChainExplorerUrl } from "@/lib/constants";
+import { getRiskLevel, getChainExplorerUrl, getBlockscoutTxUrl } from "@/lib/constants";
 import Tooltip from "@mui/material/Tooltip";
 import Link from "next/link";
 
@@ -73,6 +73,7 @@ export default function TransactionsPage() {
                                     <th className="text-right px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Amount</th>
                                     <th className="text-center px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Score</th>
                                     <th className="text-right px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Block</th>
+                                    <th className="text-center px-6 py-4 text-xs text-muted font-medium uppercase tracking-wider">Tx Proof</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -87,9 +88,10 @@ export default function TransactionsPage() {
                                             key={`${tx.transactionHash}-${i}`}
                                             title={
                                                 <span>
-                                                    View on Subscan:<br />
+                                                    To view on Subscan, search by block number:<br />
                                                     • {sourceName}: {new URL(sourceExplorer).hostname}<br />
-                                                    • {destName}: {new URL(destExplorer).hostname}
+                                                    • {destName}: {new URL(destExplorer).hostname}<br />
+                                                    <em>(EVM addresses cannot be searched on Subscan)</em>
                                                 </span>
                                             }
                                             arrow
@@ -125,8 +127,25 @@ export default function TransactionsPage() {
                                                         {tx.newScore}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-right text-sm text-muted font-mono">
-                                                    #{tx.blockNumber}
+                                                <td className="px-6 py-4 text-right text-sm font-mono">
+                                                    <a
+                                                        href={`${sourceExplorer}/block/${tx.blockNumber}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-muted hover:text-primary hover:underline transition-colors"
+                                                    >
+                                                        #{tx.blockNumber}
+                                                    </a>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <a
+                                                        href={getBlockscoutTxUrl(tx.transactionHash)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-xs text-primary hover:underline font-medium"
+                                                    >
+                                                        View ↗
+                                                    </a>
                                                 </td>
                                             </tr>
                                         </Tooltip>

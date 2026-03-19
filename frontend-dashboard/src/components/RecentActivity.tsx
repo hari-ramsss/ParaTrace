@@ -1,7 +1,7 @@
 "use client";
 
 import { truncateAddress, formatVolume, getChainName } from "@/lib/utils";
-import { getRiskLevel, getChainExplorerUrl } from "@/lib/constants";
+import { getRiskLevel, getChainExplorerUrl, getBlockscoutTxUrl } from "@/lib/constants";
 import Tooltip from "@mui/material/Tooltip";
 import type { TransactionEvent } from "@/lib/registry";
 
@@ -42,9 +42,10 @@ export default function RecentActivity({ transactions, loading }: RecentActivity
                                 key={`${tx.transactionHash}-${i}`}
                                 title={
                                     <span>
-                                        View on Subscan:<br />
+                                        To view on Subscan, search by block number:<br />
                                         • {sourceName}: {new URL(sourceExplorer).hostname}<br />
-                                        • {destName}: {new URL(destExplorer).hostname}
+                                        • {destName}: {new URL(destExplorer).hostname}<br />
+                                        <em>(EVM addresses cannot be searched on Subscan)</em>
                                     </span>
                                 }
                                 arrow
@@ -65,6 +66,15 @@ export default function RecentActivity({ transactions, loading }: RecentActivity
                                             <p className="text-xs text-gray-500">
                                                 {sourceName} → {destName}
                                             </p>
+                                            <a
+                                                href={`${sourceExplorer}/block/${tx.blockNumber}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-[10px] text-muted hover:text-primary hover:underline transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Block #{tx.blockNumber}
+                                            </a>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -74,6 +84,15 @@ export default function RecentActivity({ transactions, loading }: RecentActivity
                                         <p className="text-xs" style={{ color: level.color }}>
                                             Score: {tx.newScore}
                                         </p>
+                                        <a
+                                            href={getBlockscoutTxUrl(tx.transactionHash)}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-[10px] text-primary hover:underline opacity-70 hover:opacity-100 transition-opacity"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            View Tx ↗
+                                        </a>
                                     </div>
                                 </div>
                             </Tooltip>

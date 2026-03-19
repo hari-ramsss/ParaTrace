@@ -7,7 +7,7 @@ import RiskGauge from "@/components/RiskGauge";
 import WalletRiskRadar from "@/components/WalletRiskRadar";
 import { getFullProfile, getRecentTransactions, type WalletProfile, type TransactionEvent } from "@/lib/registry";
 import { formatVolume, formatTimestamp, formatDuration, getChainName } from "@/lib/utils";
-import { getRiskLevel, getChainExplorerUrl } from "@/lib/constants";
+import { getRiskLevel, getChainExplorerUrl, getBlockscoutTxUrl } from "@/lib/constants";
 import Tooltip from "@mui/material/Tooltip";
 
 export default function WalletLookupContent() {
@@ -197,9 +197,10 @@ export default function WalletLookupContent() {
                                             key={`${tx.transactionHash}-${i}`}
                                             title={
                                                 <span>
-                                                    View on Subscan:<br />
+                                                    To view on Subscan, search by block number:<br />
                                                     • {sourceName}: {new URL(sourceExplorer).hostname}<br />
-                                                    • {destName}: {new URL(destExplorer).hostname}
+                                                    • {destName}: {new URL(destExplorer).hostname}<br />
+                                                    <em>(EVM addresses cannot be searched on Subscan)</em>
                                                 </span>
                                             }
                                             arrow
@@ -217,9 +218,15 @@ export default function WalletLookupContent() {
                                                         <p className="text-sm text-foreground">
                                                             {sourceName} → {destName}
                                                         </p>
-                                                        <p className="text-xs text-muted font-mono">
+                                                        <a
+                                                            href={`${sourceExplorer}/block/${tx.blockNumber}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-xs text-muted font-mono hover:text-primary hover:underline transition-colors"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
                                                             Block #{tx.blockNumber}
-                                                        </p>
+                                                        </a>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
@@ -229,6 +236,15 @@ export default function WalletLookupContent() {
                                                     <p className="text-xs" style={{ color: level.color }}>
                                                         Score: {tx.newScore}
                                                     </p>
+                                                    <a
+                                                        href={getBlockscoutTxUrl(tx.transactionHash)}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-[10px] text-primary hover:underline opacity-70 hover:opacity-100 transition-opacity"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        View Tx ↗
+                                                    </a>
                                                 </div>
                                             </div>
                                         </Tooltip>
