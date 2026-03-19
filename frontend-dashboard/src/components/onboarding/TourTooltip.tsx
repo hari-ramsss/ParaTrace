@@ -31,13 +31,71 @@ export default function TourTooltip({
     onClose,
     isVisible,
 }: TourTooltipProps) {
-    const [position, setPosition] = useState<Position | null>(null);
-    const [isPositioned, setIsPositioned] = useState(false);
+    const [targetPosition, setTargetPosition] = useState<Position | null>(null);
+    const [animatedPosition, setAnimatedPosition] = useState<{ top: number; left: number } | null>(null);
+    const [arrowPosition, setArrowPosition] = useState<Position["arrowPosition"]>("none");
+    const [isInitialized, setIsInitialized] = useState(false);
     const tooltipRef = useRef<HTMLDivElement>(null);
+    const animationRef = useRef<number | null>(null);
+
+    // Smooth lerp animation for position
+    useEffect(() => {
+        if (!targetPosition) {
+            setAnimatedPosition(null);
+            return;
+        }
+
+        if (!animatedPosition) {
+            setAnimatedPosition({ top: targetPosition.top, left: targetPosition.left });
+            setArrowPosition(targetPosition.arrowPosition);
+            setIsInitialized(true);
+            return;
+        }
+
+        const lerp = (start: number, end: number, t: number) => start + (end - start) * t;
+        const ease = 0.08; // Slower animation (lower = slower)
+
+        const animate = () => {
+            setAnimatedPosition((prev) => {
+                if (!prev) return { top: targetPosition.top, left: targetPosition.left };
+
+                const newPos = {
+                    top: lerp(prev.top, targetPosition.top, ease),
+                    left: lerp(prev.left, targetPosition.left, ease),
+                };
+
+                // Check if close enough to stop animating
+                const isClose =
+                    Math.abs(newPos.top - targetPosition.top) < 0.5 &&
+                    Math.abs(newPos.left - targetPosition.left) < 0.5;
+
+                if (isClose) {
+                    setArrowPosition(targetPosition.arrowPosition);
+                    return { top: targetPosition.top, left: targetPosition.left };
+                }
+
+                animationRef.current = requestAnimationFrame(animate);
+                return newPos;
+            });
+        };
+
+        // Update arrow position when halfway through animation
+        setTimeout(() => setArrowPosition(targetPosition.arrowPosition), 150);
+
+        animationRef.current = requestAnimationFrame(animate);
+
+        return () => {
+            if (animationRef.current) {
+                cancelAnimationFrame(animationRef.current);
+            }
+        };
+    }, [targetPosition]);
 
     useEffect(() => {
         if (!isVisible) {
-            setIsPositioned(false);
+            setIsInitialized(false);
+            setTargetPosition(null);
+            setAnimatedPosition(null);
             return;
         }
 
@@ -54,51 +112,76 @@ export default function TourTooltip({
             if (step.placement === "center" || !element) {
                 const top = window.innerHeight / 2 - tooltipRect.height / 2;
                 const left = window.innerWidth / 2 - tooltipRect.width / 2;
-                setPosition({ top, left, arrowPosition: "none" });
-                setIsPositioned(true);
+                setTargetPosition({ top, left, arrowPosition: "none" });
+                setIsInitialized(true);
                 return;
             }
 
             const targetRect = element.getBoundingClientRect();
             let top: number;
             let left: number;
-            let arrowPosition: Position["arrowPosition"];
+            let newArrowPosition: Position["arrowPosition"];
 
-            switch (step.placement) {
+            // Determine best placement based on available space
+            let finalPlacement = step.placement;
+            const spaceBelow = window.innerHeight - targetRect.bottom;
+            const spaceAbove = targetRect.top;
+            const spaceRight = window.innerWidth - targetRect.right;
+            const spaceLeft = targetRect.left;
+
+            // Auto-adjust placement if not enough space
+            if (finalPlacement === "bottom" && spaceBelow < tooltipRect.height + padding * 2) {
+                if (spaceAbove > spaceBelow) finalPlacement = "top";
+            } else if (finalPlacement === "top" && spaceAbove < tooltipRect.height + padding * 2) {
+                if (spaceBelow > spaceAbove) finalPlacement = "bottom";
+            } else if (finalPlacement === "right" && spaceRight < tooltipRect.width + padding * 2) {
+                if (spaceLeft > spaceRight) finalPlacement = "left";
+            } else if (finalPlacement === "left" && spaceLeft < tooltipRect.width + padding * 2) {
+                if (spaceRight > spaceLeft) finalPlacement = "right";
+            }
+
+            switch (finalPlacement) {
                 case "bottom":
                     top = targetRect.bottom + padding + arrowSize;
                     left = targetRect.left + targetRect.width / 2 - tooltipRect.width / 2;
-                    arrowPosition = "top";
+                    newArrowPosition = "top";
                     break;
                 case "top":
                     top = targetRect.top - tooltipRect.height - padding - arrowSize;
                     left = targetRect.left + targetRect.width / 2 - tooltipRect.width / 2;
-                    arrowPosition = "bottom";
+                    newArrowPosition = "bottom";
                     break;
                 case "left":
                     top = targetRect.top + targetRect.height / 2 - tooltipRect.height / 2;
                     left = targetRect.left - tooltipRect.width - padding - arrowSize;
-                    arrowPosition = "right";
+                    newArrowPosition = "right";
                     break;
                 case "right":
                     top = targetRect.top + targetRect.height / 2 - tooltipRect.height / 2;
                     left = targetRect.right + padding + arrowSize;
-                    arrowPosition = "left";
+                    newArrowPosition = "left";
                     break;
                 default:
                     top = targetRect.bottom + padding;
                     left = targetRect.left;
-                    arrowPosition = "top";
+                    newArrowPosition = "top";
             }
 
+            // Clamp horizontal position to viewport
             const viewportWidth = window.innerWidth;
             if (left < padding) left = padding;
             if (left + tooltipRect.width > viewportWidth - padding) {
                 left = viewportWidth - tooltipRect.width - padding;
             }
 
-            setPosition({ top, left, arrowPosition });
-            setIsPositioned(true);
+            // Clamp vertical position to viewport
+            if (top < padding) top = padding;
+            if (top + tooltipRect.height > window.innerHeight - padding) {
+                top = window.innerHeight - tooltipRect.height - padding;
+            }
+
+            setTargetPosition({ top, left, arrowPosition: newArrowPosition });
+            setIsInitialized(true);
         };
 
         const element = document.querySelector(step.target);
@@ -106,11 +189,15 @@ export default function TourTooltip({
             element.scrollIntoView({ behavior: "smooth", block: "center" });
             setTimeout(calculatePosition, 400);
         } else {
-            calculatePosition();
+            setTimeout(calculatePosition, 100);
         }
 
         window.addEventListener("resize", calculatePosition);
-        return () => window.removeEventListener("resize", calculatePosition);
+        window.addEventListener("scroll", calculatePosition, true);
+        return () => {
+            window.removeEventListener("resize", calculatePosition);
+            window.removeEventListener("scroll", calculatePosition, true);
+        };
     }, [step, isVisible]);
 
     if (!isVisible) return null;
@@ -129,18 +216,18 @@ export default function TourTooltip({
     return (
         <div
             ref={tooltipRef}
-            className={`fixed z-[9999] w-80 max-w-[calc(100vw-2rem)] transition-all duration-300 ease-out ${
-                isPositioned ? "opacity-100 scale-100" : "opacity-0 scale-95"
+            className={`fixed z-[9999] w-80 max-w-[calc(100vw-2rem)] transition-opacity duration-300 ${
+                isInitialized ? "opacity-100" : "opacity-0"
             }`}
             style={{
-                top: position?.top ?? 0,
-                left: position?.left ?? 0,
+                top: animatedPosition?.top ?? 0,
+                left: animatedPosition?.left ?? 0,
             }}
         >
-            {position && position.arrowPosition !== "none" && (
+            {arrowPosition !== "none" && (
                 <div
-                    className={`absolute w-4 h-4 bg-card border border-border rotate-45 ${
-                        arrowClasses[position.arrowPosition]
+                    className={`absolute w-4 h-4 bg-card border border-border rotate-45 transition-all duration-200 ${
+                        arrowClasses[arrowPosition]
                     }`}
                 />
             )}

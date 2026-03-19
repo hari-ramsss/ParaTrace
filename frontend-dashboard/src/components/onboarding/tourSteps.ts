@@ -37,7 +37,7 @@ export const TOUR_STEPS: TourStep[] = [
     },
     {
         id: "flagged-nav",
-        target: '[data-tour="nav-flagged"]',
+        target: '[data-tour="nav-flagged-wallets"]',
         title: "Flagged Wallets",
         content:
             "Monitor wallets that have exceeded the risk threshold. These addresses require attention for potential suspicious activity.",
