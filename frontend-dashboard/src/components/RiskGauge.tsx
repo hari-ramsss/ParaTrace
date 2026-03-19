@@ -1,6 +1,7 @@
 "use client";
 
 import { getRiskLevel } from "@/lib/constants";
+import { useTheme } from "@mui/material/styles";
 
 interface RiskGaugeProps {
     score: number;
@@ -16,6 +17,8 @@ const sizeMap = {
 export default function RiskGauge({ score, size = "md" }: RiskGaugeProps) {
     const level = getRiskLevel(score);
     const s = sizeMap[size];
+    const theme = useTheme();
+    const isDark = theme.palette.mode === "dark";
 
     // SVG circular progress
     const radius = 42;
@@ -31,7 +34,7 @@ export default function RiskGauge({ score, size = "md" }: RiskGaugeProps) {
                     cy="50"
                     r={radius}
                     fill="none"
-                    stroke="rgba(255,255,255,0.05)"
+                    stroke={isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.08)"}
                     strokeWidth="6"
                 />
                 {/* Progress circle */}
@@ -52,7 +55,7 @@ export default function RiskGauge({ score, size = "md" }: RiskGaugeProps) {
                 />
             </svg>
             <div className="text-center z-10">
-                <span className={`${s.text} font-bold text-white`}>{score}</span>
+                <span className={`${s.text} font-bold text-foreground`}>{score}</span>
                 <p className={`${s.label} font-medium mt-0.5`} style={{ color: level.color }}>
                     {level.label} Risk
                 </p>

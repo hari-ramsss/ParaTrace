@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { Search, ArrowRight, History, AlertTriangle } from "lucide-react";
 import Alert from "@/components/Alert";
@@ -10,6 +11,11 @@ import { getFullProfile, getRecentTransactions, type WalletProfile, type Transac
 import { formatVolume, formatTimestamp, formatDuration, getChainName } from "@/lib/utils";
 import { getRiskLevel, getChainExplorerUrl, getBlockscoutTxUrl } from "@/lib/constants";
 import Tooltip from "@mui/material/Tooltip";
+
+const ChainConnectionGraph = dynamic(() => import("@/components/ChainConnectionGraph"), {
+    ssr: false,
+    loading: () => <div className="h-[400px] w-full animate-pulse bg-card rounded-2xl border border-border mt-6 flex items-center justify-center text-muted text-sm">Loading Interaction Graph...</div>
+});
 
 export default function WalletLookupContent() {
     const searchParams = useSearchParams();
@@ -33,22 +39,23 @@ export default function WalletLookupContent() {
         setPartialData(false);
 
         try {
-            const [data, result] = await Promise.all([
+            // Explicitly type the results to avoid inference issues with Promise.all
+            const [profileData, txResult]: [WalletProfile, { events: TransactionEvent[]; metadata: any }] = await Promise.all([
                 getFullProfile(addr.trim()),
                 getRecentTransactions(50),
             ]);
 
-            if (result.metadata.isPartial) {
+            if (txResult.metadata?.isPartial) {
                 setPartialData(true);
-                setFailedChunks(result.metadata.failedChunks);
-                setTotalChunks(result.metadata.totalChunks);
+                setFailedChunks(txResult.metadata.failedChunks);
+                setTotalChunks(txResult.metadata.totalChunks);
             }
 
-            setProfile(data);
+            setProfile(profileData);
 
             // Filter transactions for this wallet
-            const filtered = result.events.filter(
-                (tx) => tx.wallet.toLowerCase() === addr.trim().toLowerCase()
+            const filtered = txResult.events.filter(
+                (tx: TransactionEvent) => tx.wallet.toLowerCase() === addr.trim().toLowerCase()
             );
             setWalletTxs(filtered);
         } catch (err) {
@@ -96,7 +103,7 @@ export default function WalletLookupContent() {
             <form onSubmit={handleSearch} className="mb-10">
                 <div className="flex gap-3">
                     <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                         <input
                             type="text"
                             value={address}
@@ -181,6 +188,12 @@ export default function WalletLookupContent() {
                         <InfoCard label="Flagged Interactions" value={profile.flaggedInteractions.toString()} />
                         <InfoCard label="Last Transaction" value={formatTimestamp(profile.lastTxTimestamp)} />
                     </div>
+
+                    {/* Chain Interaction Graph */}
+                    <ChainConnectionGraph
+                        walletAddress={address}
+                        transactions={walletTxs}
+                    />
 
                     {/* Active Chains */}
                     {profile.chainBitmap > 0 && (
@@ -283,7 +296,7 @@ export default function WalletLookupContent() {
 
             {/* Empty state */}
             {searched && !loading && !profile && !error && (
-                <div className="text-center py-16 text-gray-500">
+                <div className="text-center py-16 text-muted">
                     No data found for this address
                 </div>
             )}

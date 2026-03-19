@@ -50,7 +50,7 @@ export default function WalletRiskRadar({ profile }: WalletRiskRadarProps) {
             </div>
 
             <div className="mt-8 p-3 rounded-xl bg-violet-500/5 border border-violet-500/10">
-                <p className="text-[10px] text-gray-500 leading-relaxed">
+                <p className="text-[10px] text-muted leading-relaxed">
                     This vector analysis identifies specific suspicious behaviors based on on-chain heuristics and cross-chain interaction patterns.
                 </p>
             </div>

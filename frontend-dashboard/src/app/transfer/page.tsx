@@ -434,7 +434,7 @@ export default function TransferPage() {
                                     href={`${sourceChain === 1000 ? "https://assethub-westend.subscan.io" : sourceChain === 1002 ? "https://bridgehub-westend.subscan.io" : "https://westend.subscan.io"}/block/${txHash}`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="text-xs text-white underline opacity-70 hover:opacity-100 transition-opacity"
+                                    className="text-xs text-foreground underline opacity-70 hover:opacity-100 transition-opacity"
                                 >
                                     View Block on Subscan
                                 </a>

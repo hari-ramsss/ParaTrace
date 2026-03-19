@@ -44,8 +44,8 @@ export default function NetworkStatus({ rpcUrl }: NetworkStatusProps) {
     }, [rpcUrl]);
 
     return (
-        <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#0a0a0f]/90 backdrop-blur-xl border-t border-white/5">
-            <div className="max-w-7xl mx-auto px-6 h-10 flex items-center justify-between text-xs text-gray-500">
+        <footer className="fixed bottom-0 left-0 right-0 z-40 bg-background/90 backdrop-blur-xl border-t border-border">
+            <div className="max-w-7xl mx-auto px-6 h-10 flex items-center justify-between text-xs text-muted">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                         {status === "connected" ? (
