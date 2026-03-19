@@ -12,7 +12,6 @@ async function getDashboardStats() {
     const contract = new ethers.Contract(REGISTRY_ADDRESS, REGISTRY_ABI, provider);
     const currentBlock = await provider.getBlockNumber();
     const fromBlock = Math.max(0, currentBlock - 500000);
-
     const [txEvents, flagEvents] = await Promise.all([
         contract.queryFilter(contract.filters.TransactionRecorded(), fromBlock, currentBlock),
         contract.queryFilter(contract.filters.WalletFlagged(), fromBlock, currentBlock),

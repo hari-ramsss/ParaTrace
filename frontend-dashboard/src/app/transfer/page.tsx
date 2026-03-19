@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowRight, Wallet, CheckCircle2, ArrowDown, ChevronDown, ArrowRightLeft, MousePointer2 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowRight, Wallet, CheckCircle2, ArrowDown, ChevronDown, ArrowRightLeft, MousePointer2, User, AlertTriangle } from "lucide-react";
 import { useWallet } from "@/components/WalletProvider";
 
 // Dynamic import for Polkadot API to avoid SSR issues
@@ -18,9 +18,42 @@ export default function TransferPage() {
     const [isSourceOpen, setIsSourceOpen] = useState(false);
     const [isDestOpen, setIsDestOpen] = useState(false);
 
+    // Recipient address state
+    const [sendToSelf, setSendToSelf] = useState(true);
+    const [recipient, setRecipient] = useState("");
+
     const [status, setStatus] = useState<"idle" | "connecting" | "signing" | "broadcasting" | "success" | "error">("idle");
     const [txHash, setTxHash] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    // Address format detection
+    const isEvmAddress = (addr: string) => /^0x[0-9a-fA-F]{40}$/.test(addr.trim());
+    const isSS58Address = (addr: string) => /^[1-9A-HJ-NP-Za-km-z]{46,48}$/.test(addr.trim());
+
+    const recipientType = useMemo(() => {
+        const addr = recipient.trim();
+        if (!addr) return null;
+        if (isEvmAddress(addr)) return "evm" as const;
+        if (isSS58Address(addr)) return "ss58" as const;
+        return "invalid" as const;
+    }, [recipient]);
+
+    // EVM addresses only valid when destination is Polkadot Hub (relay chain 0)
+    const isEvmRecipientBlocked = recipientType === "evm" && destChain !== 0;
+
+    // Convert EVM H160 to zero-padded AccountId32 hex
+    const evmToAccountId32Hex = (evmAddr: string): string => {
+        const clean = evmAddr.toLowerCase().replace("0x", "");
+        return "0x" + "0".repeat(24) + clean; // 12 zero bytes + 20 byte address
+    };
+
+    // Validation
+    const isSameChain = sourceChain === destChain;
+
+    // Check if form can be submitted
+    const canSubmit = (status === "idle" || status === "error") &&
+        !isSameChain &&
+        (sendToSelf || (recipientType === "ss58" || (recipientType === "evm" && !isEvmRecipientBlocked)));
 
     const handleTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,6 +81,18 @@ export default function TransferPage() {
 
             setStatus("signing");
 
+            // Resolve the beneficiary AccountId32 hex
+            let beneficiaryAccountHex: string;
+            if (sendToSelf) {
+                beneficiaryAccountHex = api.createType("AccountId32", selectedAccount.address).toHex();
+            } else if (recipientType === "evm") {
+                // EVM → zero-padded AccountId32 (only reaches here if dest is Polkadot Hub)
+                beneficiaryAccountHex = evmToAccountId32Hex(recipient.trim());
+            } else {
+                // SS58 → AccountId32
+                beneficiaryAccountHex = api.createType("AccountId32", recipient.trim()).toHex();
+            }
+
             // 2. Build XCM V3 Teleport parameters dynamically based on source/dest
             let dest, beneficiary, assets, tx;
             const plancks = BigInt(parseFloat(amount) * 1e12).toString();
@@ -59,7 +104,7 @@ export default function TransferPage() {
                 // Relay -> Parachain (downward teleport)
                 dest = { V3: { parents: 0, interior: { X1: { Parachain: destChain } } } };
                 beneficiary = {
-                    V3: { parents: 0, interior: { X1: { AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null } } } }
+                    V3: { parents: 0, interior: { X1: { AccountId32: { id: beneficiaryAccountHex, network: null } } } }
                 };
                 assets = {
                     V3: [{ id: { Concrete: { parents: 0, interior: "Here" } }, fun: { Fungible: plancks } }]
@@ -70,7 +115,7 @@ export default function TransferPage() {
                 // Parachain -> Relay (upward teleport)
                 dest = { V3: { parents: 1, interior: "Here" } };
                 beneficiary = {
-                    V3: { parents: 0, interior: { X1: { AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null } } } }
+                    V3: { parents: 0, interior: { X1: { AccountId32: { id: beneficiaryAccountHex, network: null } } } }
                 };
                 assets = {
                     V3: [{ id: { Concrete: { parents: 1, interior: "Here" } }, fun: { Fungible: plancks } }]
@@ -80,7 +125,7 @@ export default function TransferPage() {
                 // Parachain -> Parachain (lateral teleport via Relay)
                 dest = { V3: { parents: 1, interior: { X1: { Parachain: destChain } } } };
                 beneficiary = {
-                    V3: { parents: 0, interior: { X1: { AccountId32: { id: api.createType("AccountId32", selectedAccount.address).toHex(), network: null } } } }
+                    V3: { parents: 0, interior: { X1: { AccountId32: { id: beneficiaryAccountHex, network: null } } } }
                 };
                 assets = {
                     V3: [{ id: { Concrete: { parents: 1, interior: "Here" } }, fun: { Fungible: plancks } }]
@@ -263,6 +308,74 @@ export default function TransferPage() {
                             </div>
                         </div>
 
+                        {/* Recipient Address */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-sm font-medium text-muted flex items-center gap-2">
+                                    <User className="w-4 h-4" />
+                                    Recipient
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => { setSendToSelf(!sendToSelf); setRecipient(""); }}
+                                    className="text-xs text-primary hover:underline transition-colors"
+                                    disabled={status !== "idle" && status !== "error"}
+                                >
+                                    {sendToSelf ? "Send to another address" : "Send to myself"}
+                                </button>
+                            </div>
+
+                            {sendToSelf ? (
+                                <div className="p-3 rounded-xl bg-background border border-border flex items-center gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-muted">Sending to your own address on the destination chain</p>
+                                        <p className="text-xs font-mono text-foreground/60 truncate w-48 sm:w-96">{selectedAccount.address}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        value={recipient}
+                                        onChange={(e) => setRecipient(e.target.value)}
+                                        placeholder="SS58 address (5Grw...) or EVM address (0x...)"
+                                        className={`w-full px-4 py-3 rounded-xl bg-background border text-foreground placeholder:text-muted focus:outline-none focus:ring-1 transition-all font-mono text-sm ${recipient && recipientType === "invalid"
+                                            ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
+                                            : isEvmRecipientBlocked
+                                                ? "border-amber-500/50 focus:border-amber-500 focus:ring-amber-500/20"
+                                                : "border-border focus:border-primary focus:ring-primary/50"
+                                            }`}
+                                        disabled={status !== "idle" && status !== "error"}
+                                    />
+
+                                    {/* Address format feedback */}
+                                    {recipient && recipientType === "ss58" && (
+                                        <p className="text-xs text-emerald-400 flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" /> Substrate (SS58) address detected
+                                        </p>
+                                    )}
+                                    {recipient && recipientType === "evm" && !isEvmRecipientBlocked && (
+                                        <p className="text-xs text-emerald-400 flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" /> EVM address detected — will be mapped to AccountId32 on Polkadot Hub
+                                        </p>
+                                    )}
+                                    {isEvmRecipientBlocked && (
+                                        <p className="text-xs text-amber-400 flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" /> EVM addresses are only supported when destination is Westend Relay (Polkadot Hub). Change destination or use an SS58 address.
+                                        </p>
+                                    )}
+                                    {recipient && recipientType === "invalid" && (
+                                        <p className="text-xs text-red-400 flex items-center gap-1">
+                                            <AlertTriangle className="w-3 h-3" /> Invalid address format. Enter an SS58 (5Grw...) or EVM (0x...) address.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         <div>
                             <label className="block text-sm font-medium text-muted mb-2">Amount (WND)</label>
                             <div className="relative">
@@ -283,13 +396,21 @@ export default function TransferPage() {
                             </div>
                         </div>
 
+                        {/* Same chain warning */}
+                        {isSameChain && (
+                            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                Source and destination must be different chains for XCM teleport.
+                            </div>
+                        )}
+
                         <button
                             type="submit"
-                            disabled={status !== "idle" && status !== "error"}
+                            disabled={!canSubmit}
                             className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
                         >
                             {status === "idle" || status === "error" ? (
-                                <>Teleport to Asset Hub <ArrowRight className="w-5 h-5" /></>
+                                <>Teleport {sendToSelf ? "to " : ""}{destChain === 0 ? "Westend Relay" : destChain === 1000 ? "Asset Hub" : destChain === 1002 ? "Bridge Hub" : "Coretime"} <ArrowRight className="w-5 h-5" /></>
                             ) : status === "connecting" ? (
                                 "Connecting to Westend RPC..."
                             ) : status === "signing" ? (

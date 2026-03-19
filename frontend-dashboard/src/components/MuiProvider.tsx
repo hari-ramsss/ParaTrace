@@ -47,6 +47,11 @@ export default function MuiProvider({ children }: { children: React.ReactNode })
         });
     }, [mounted, resolvedTheme]);
 
+    // Prevent hydration mismatch by not rendering until mounted
+    if (!mounted) {
+        return <>{children}</>;
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline enableColorScheme />
