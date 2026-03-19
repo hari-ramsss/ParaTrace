@@ -94,6 +94,21 @@
 }
 
 /* ─── Base Styles ─────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease-out;
+}
+
+/* Disable transitions during view transition to prevent double animation */
+html.view-transition-active *,
+html.view-transition-active *::before,
+html.view-transition-active *::after {
+  transition: none !important;
+}
+
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
@@ -182,6 +197,11 @@ h6 {
 }
 
 /* ─── View Transition API (Radial Reveal) ─────────────────── */
+::view-transition-group(root) {
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
@@ -189,5 +209,46 @@ h6 {
 }
 
 ::view-transition-old(root) {
+  animation: fadeOutSlight 600ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
+}
+
+@keyframes fadeOutSlight {
+  from { opacity: 1; }
+  to { opacity: 0.5; }
+}
+
+/* ─── Onboarding Tour Styles ─────────────────────────────────── */
+.tour-spotlight {
+  position: relative;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+@keyframes tooltipEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-tooltip-enter {
+  animation: tooltipEnter 0.3s ease-out;
+}
+
+@keyframes tourPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+  }
+}
+
+.tour-pulse {
+  animation: tourPulse 2s ease-in-out infinite;
 }

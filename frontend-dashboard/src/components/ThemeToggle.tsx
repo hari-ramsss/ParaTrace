@@ -33,6 +33,8 @@ export default function ThemeToggle() {
         }
 
         setIsTransitioning(true);
+        document.documentElement.classList.add("view-transition-active");
+
         const transition = (document as any).startViewTransition(() => {
             setTheme(isDark ? "light" : "dark");
         });
@@ -51,11 +53,16 @@ export default function ThemeToggle() {
                     ],
                 },
                 {
-                    duration: 500,
-                    easing: "ease-in-out",
+                    duration: 600,
+                    easing: "cubic-bezier(0.4, 0, 0.2, 1)",
                     pseudoElement: "::view-transition-new(root)",
                 }
-            ).onfinish = () => setIsTransitioning(false);
+            );
+        });
+
+        transition.finished.then(() => {
+            document.documentElement.classList.remove("view-transition-active");
+            setIsTransitioning(false);
         });
     };
 

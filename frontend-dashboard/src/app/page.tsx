@@ -106,6 +106,7 @@ export default function DashboardPage() {
       {/* Hero */}
       <div
         id="hero-banner"
+        data-tour="hero-banner"
         className="relative mb-16 py-12 flex flex-col items-center text-center rounded-3xl border border-border transition-colors duration-300 bg-card overflow-hidden shadow-sm"
       >
         <h1 className="text-6xl font-bold text-foreground mb-6 font-serif max-w-4xl tracking-tight leading-tight relative z-20">
@@ -153,7 +154,7 @@ export default function DashboardPage() {
       )}
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+      <div data-tour="stat-cards" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         <StatCard
           title="Total Transactions"
           value={loading ? "—" : data?.totalTransactions ?? 0}
@@ -181,7 +182,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Row */}
-      <div id="analytics" className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 scroll-mt-24">
+      <div id="analytics" data-tour="analytics" className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 scroll-mt-24">
         {loading ? (
           <>
             <div className="h-[350px] bg-card rounded-2xl animate-pulse" />
@@ -200,10 +201,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <RecentActivity
-        transactions={data?.recentTransactions ?? []}
-        loading={loading}
-      />
+      <div data-tour="recent-activity">
+        <RecentActivity
+          transactions={data?.recentTransactions ?? []}
+          loading={loading}
+        />
+      </div>
     </div>
   );
 }

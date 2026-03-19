@@ -5,6 +5,7 @@ import MuiProvider from "@/components/MuiProvider";
 import NetworkStatus from "@/components/NetworkStatus";
 import { ThemeProvider } from "next-themes";
 import { WalletProvider } from "@/components/WalletProvider";
+import { OnboardingProvider, OnboardingTour } from "@/components/onboarding";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -39,9 +40,12 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <MuiProvider>
             <WalletProvider>
-              <Navbar />
-              <main className="pt-16 pb-12">{children}</main>
-              <NetworkStatus rpcUrl={process.env.NEXT_PUBLIC_ETH_RPC_URL || "https://services.polkadothub-rpc.com/testnet"} />
+              <OnboardingProvider>
+                <Navbar />
+                <main className="pt-16 pb-12">{children}</main>
+                <NetworkStatus rpcUrl={process.env.NEXT_PUBLIC_ETH_RPC_URL || "https://services.polkadothub-rpc.com/testnet"} />
+                <OnboardingTour />
+              </OnboardingProvider>
             </WalletProvider>
           </MuiProvider>
         </ThemeProvider>

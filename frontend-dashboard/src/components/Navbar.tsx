@@ -42,13 +42,15 @@ export default function Navbar() {
                 </Link>
 
                 {/* Desktop Nav Links */}
-                <div className="hidden md:flex items-center gap-1">
+                <div data-tour="nav-links" className="hidden md:flex items-center gap-1">
                     {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
                         const isActive = pathname === href;
+                        const tourId = label.toLowerCase().replace(" ", "-");
                         return (
                             <Link
                                 key={href}
                                 href={href}
+                                data-tour={`nav-${tourId}`}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-dm-sans font-medium transition-all duration-200 ${isActive
                                     ? "text-foreground bg-foreground/5"
                                     : "text-muted hover:text-foreground hover:bg-foreground/5"
@@ -60,7 +62,9 @@ export default function Navbar() {
                         );
                     })}
                     <div className="ml-2 pl-2 border-l border-border flex items-center gap-3">
-                        <ThemeToggle />
+                        <div data-tour="theme-toggle">
+                            <ThemeToggle />
+                        </div>
 
                         {selectedAccount ? (
                             <div className="flex items-center gap-2 pl-2 border-l border-border">
@@ -80,6 +84,7 @@ export default function Navbar() {
                             </div>
                         ) : (
                             <button
+                                data-tour="connect-wallet"
                                 onClick={connect}
                                 disabled={isConnecting}
                                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-all shadow-md active:scale-95 disabled:opacity-50"
