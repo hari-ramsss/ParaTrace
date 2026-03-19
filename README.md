@@ -3,7 +3,7 @@
 ## Introduction
 Blockchain technology has evolved far beyond single-chain ecosystems. Modern blockchain infrastructures are now built around interoperability, where multiple blockchains communicate and exchange assets seamlessly. Platforms such as Polkadot enable this functionality through cross-chain communication protocols that allow different networks to interact with each other.
 
-This innovation enables users to transfer tokens, execute smart contracts, and interact with decentralized applications across different chains. While this interoperability improves scalability and usability, it also introduces serious challenges in security, compliance, and transaction monitoring.
+This innovation also enables users to transfer tokens, execute smart contracts, and interact with decentralized applications across different chains. While this interoperability improves scalability and usability, it also introduces serious challenges in security, compliance, and transaction monitoring.
 
 When assets move rapidly between chains, it becomes extremely difficult to track their origin, destination, and behavioral patterns. Malicious actors can exploit this complexity to perform activities such as cross-chain money laundering, exploit-driven asset movement, and fraud.
 
