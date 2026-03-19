@@ -42,9 +42,10 @@ export default function TransferPage() {
     const isEvmRecipientBlocked = recipientType === "evm" && destChain !== 0;
 
     // Convert EVM H160 to zero-padded AccountId32 hex
+    // Use literal zeros instead of .repeat() to avoid build-time evaluation issues
     const evmToAccountId32Hex = (evmAddr: string): string => {
         const clean = evmAddr.toLowerCase().replace("0x", "");
-        return "0x" + "0".repeat(24) + clean; // 12 zero bytes + 20 byte address
+        return "0x000000000000000000000000" + clean; // 24 zeros = 12 bytes padding + 20 byte address
     };
 
     // Validation
