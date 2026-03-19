@@ -28,7 +28,7 @@ export default function RecentActivity({ transactions, loading }: RecentActivity
         <div className="rounded-2xl border border-border bg-card p-6">
             <h3 className="text-xl font-bold text-foreground mb-4 font-serif">Recent Activity</h3>
             {transactions.length === 0 ? (
-                <p className="text-gray-500 text-sm text-center py-8">No transactions recorded yet</p>
+                <p className="text-muted text-sm text-center py-8">No transactions recorded yet</p>
             ) : (
                 <div className="space-y-2">
                     {transactions.map((tx, i) => {
@@ -63,7 +63,7 @@ export default function RecentActivity({ transactions, loading }: RecentActivity
                                             <p className="text-sm font-mono text-foreground break-all">
                                                 {tx.wallet}
                                             </p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-muted">
                                                 {sourceName} → {destName}
                                             </p>
                                             <a

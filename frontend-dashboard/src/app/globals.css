@@ -141,7 +141,7 @@ h6 {
 /* ─── Selection ───────────────────────────────────────────── */
 ::selection {
   background: rgba(139, 92, 246, 0.3);
-  color: white;
+  color: var(--text-primary);
 }
 
 /* ─── Animated gradient background ────────────────────────── */
@@ -154,9 +154,9 @@ h6 {
 
 /* ─── Glass card ──────────────────────────────────────────── */
 .glass {
-  background: rgba(18, 18, 26, 0.8);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-neutral);
 }
 
 /* ─── Glow effects ────────────────────────────────────────── */
