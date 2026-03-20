@@ -125,3 +125,65 @@ The MVP implementation features:
 2. **PVM Interoperability:** Passing transaction metadata to an on-chain **Rust-based (`ink!`) Risk Engine** deployed natively on the **PolkaVM**.
 3. **Solidity Registry:** Exposing a **Solidity Registry Contract** (compiled via `pallet-revive`) that queries the Rust engine to update and store risk scores.
 4. **Web3 Interface:** Displaying real-time data, flagged wallets, and cross-chain transaction flows via a lightweight React dashboard connected via standard RPCs.
+
+---
+
+## Technical Architecture & Core Components
+
+1. **Rust Risk Engine (`contracts-rust/risk_engine/lib.rs`)**  
+   A stateless, advanced multi-factor risk scoring algorithm written in `ink!` for the PolkaVM. It performs pure computation with zero storage reads/writes to keep gas costs minimal. It calculates a risk score (0-100) based on five metrics: total volume, transaction frequency, transaction velocity (average time between transacitons), chain diversity (chain hopping), and flagged interactions.
+
+2. **Solidity Registry (`contracts-solidity/contracts/ParaTraceRegistry.sol`)**  
+   The primary on-chain Risk Oracle and wallet monitor. It manages gas-packed wallet profiles to track behavior efficiently and calls the Rust Risk Engine via cross-contract calls to compute updated risk scores. When a wallet exceeds the customizable risk threshold, it is automatically flagged, emitting log events for downstream consumption by DeFi protocols or dashboards.
+
+3. **XCM Event Indexer (`indexer/src/index.js`)**  
+   A Node.js backend service that maintains live WebSocket subscriptions to both the Polkadot Relay Chain and Asset Hub. It actively listens for `polkadotXcm.Sent` events. Upon detecting cross-chain transfers, it parses the payload and proactively calls the `recordTransaction()` write function on the `ParaTraceRegistry.sol` contract via an EVM-RPC adapter to update the sender's risk profile in real-time.
+
+---
+
+## Setup & Execution Guide
+
+ParaTrace uses a local Zombienet environment to simulate the Polkadot Relay Chain and Asset Hub alongside an `eth-rpc` adapter for EVM compatibility. 
+
+### Prerequisites
+* Node.js (v18+)
+* Zombienet (v0.3.4+), Polkadot & Polkadot-Parachain binaries
+* eth-rpc (Substrate → EVM adapter)
+
+### 1. Start the Local Blockchain Stack
+Launch the unified Zombienet relay and parachain stack:
+```bash
+bash zombienet/start-local-stack.sh
+```
+*This starts the Relay chain, Asset Hub, and the EVM `eth-rpc` adapter on port 8545.*
+
+### 2. Deploy the Contracts
+Deploy the Rust Risk Engine and the Solidity Registry:
+```bash
+cd contracts-solidity
+npm install
+# Deploy Rust (ink!) Risk Engine
+npx hardhat run scripts/deployRiskEngine.ts --network zombienet
+# Deploy Solidity Registry (replace with Risk Engine address from previous step)
+npx hardhat ignition deploy ignition/modules/ParaTrace.ts \
+  --network zombienet \
+  --parameters '{"ParaTraceModule":{"riskEngineAddress":"<RISK_ENGINE_ADDR>"}}'
+```
+
+### 3. Start the Event Indexer
+Run the indexer to monitor XCM transfers and feed data to the registry:
+```bash
+cd indexer
+npm install
+# Ensure .env is configured with your deployed REGISTRY_CONTRACT_ADDRESS
+npm start
+```
+
+### 4. Launch the Dashboard
+Start the frontend interface to visualize real-time cross-chain flows and flagged wallets:
+```bash
+cd frontend-dashboard
+npm install
+npm run dev
+```
+*Access the dashboard at http://localhost:3000.*
