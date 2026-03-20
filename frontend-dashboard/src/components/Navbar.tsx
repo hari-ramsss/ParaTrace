@@ -13,7 +13,7 @@ const NAV_ITEMS = [
     { href: "/wallet", label: "Wallet Lookup", icon: Search },
     { href: "/flagged", label: "Flagged Wallets", icon: AlertTriangle },
     { href: "/transactions", label: "Transactions", icon: List },
-    { href: "/transfer", label: "Live Demo", icon: Zap },
+    { href: "/transfer", label: "XCM Transfer", icon: Zap },
 ];
 
 export default function Navbar() {

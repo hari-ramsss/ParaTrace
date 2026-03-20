@@ -87,7 +87,7 @@ Using the `pallet-revive` bridge, the **Solidity-based Registry** (managing stat
 ### Core Components
 
 1. **XCM Event Indexer (`indexer/`)**  
-   A production Node.js indexing service running continuously at [https://paratrace.onrender.com/](https://paratrace.onrender.com/). It maintains live WebSocket subscriptions to Polkadot Hub, Asset Hub, Bridge Hub, and Coretime; parses finalized XCM-related events (`polkadotXcm.Sent`, assets, balances); normalizes Substrate accounts into EVM-compatible addresses for contract writes; and calls the Registry's `recordTransaction(...)` function for sender/receiver risk tracking in near real-time.
+   A production Node.js indexing service running continuously at [https://paratrace.onrender.com/](https://paratrace.onrender.com/). It maintains live WebSocket subscriptions to Westend Relay, Asset Hub (Westend), Bridge Hub (Westend), and Coretime (Westend); parses finalized XCM-related events (`polkadotXcm.Sent`, assets, balances); normalizes Substrate accounts into EVM-compatible addresses for contract writes; and calls the Registry's `recordTransaction(...)` function for sender/receiver risk tracking in near real-time.
    
    The service exposes operational endpoints:
    - `GET /` for status metadata

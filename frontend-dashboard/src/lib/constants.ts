@@ -23,7 +23,7 @@ export const ETH_RPC_URL = process.env.NEXT_PUBLIC_ETH_RPC_URL || "https://servi
 
 // Chain slot ID → human-readable name
 export const CHAIN_NAMES: Record<number, string> = {
-  0: "Polkadot Hub",
+  0: "Westend Relay",
   1: "Asset Hub",
   2: "Bridge Hub",
   3: "People Chain",
@@ -51,7 +51,7 @@ export function getRiskLevel(score: number) {
 
 // Chain slot ID → block explorer base URL
 export const CHAIN_EXPLORER_URLS: Record<number, string> = {
-  0: "https://westend.subscan.io",               // Polkadot Hub (Westend)
+  0: "https://westend.subscan.io",               // Westend Relay
   1: "https://assethub-westend.subscan.io",      // Asset Hub
   2: "https://bridgehub-westend.subscan.io",     // Bridge Hub
   3: "https://westend.subscan.io",               // People Chain (Westend)

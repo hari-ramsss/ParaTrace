@@ -38,7 +38,7 @@ export default function TransferPage() {
         return "invalid" as const;
     }, [recipient]);
 
-    // EVM addresses only valid when destination is Polkadot Hub (relay chain 0)
+    // EVM addresses only valid when destination is Westend Relay (relay chain 0)
     const isEvmRecipientBlocked = recipientType === "evm" && destChain !== 0;
 
     // Convert EVM H160 to zero-padded AccountId32 hex
@@ -87,7 +87,7 @@ export default function TransferPage() {
             if (sendToSelf) {
                 beneficiaryAccountHex = api.createType("AccountId32", selectedAccount.address).toHex();
             } else if (recipientType === "evm") {
-                // EVM → zero-padded AccountId32 (only reaches here if dest is Polkadot Hub)
+                // EVM → zero-padded AccountId32 (only reaches here if dest is Westend Relay)
                 beneficiaryAccountHex = evmToAccountId32Hex(recipient.trim());
             } else {
                 // SS58 → AccountId32
@@ -167,7 +167,7 @@ export default function TransferPage() {
     return (
         <div className="max-w-2xl mx-auto px-6 py-10 animate-fade-in">
             <div className="mb-8 text-center">
-                <h1 className="text-3xl font-bold text-foreground mb-2">Live XCM Transfer Demo</h1>
+                <h1 className="text-3xl font-bold text-foreground mb-2">XCM Transfer</h1>
                 <p className="text-muted">
                     Send WND across chains. The ParaTrace indexer will detect this live and update the dashboard automatically.
                 </p>
@@ -360,12 +360,12 @@ export default function TransferPage() {
                                     )}
                                     {recipient && recipientType === "evm" && !isEvmRecipientBlocked && (
                                         <p className="text-xs text-emerald-400 flex items-center gap-1">
-                                            <CheckCircle2 className="w-3 h-3" /> EVM address detected — will be mapped to AccountId32 on Polkadot Hub
+                                            <CheckCircle2 className="w-3 h-3" /> EVM address detected — will be mapped to AccountId32 on Westend Relay
                                         </p>
                                     )}
                                     {isEvmRecipientBlocked && (
                                         <p className="text-xs text-amber-400 flex items-center gap-1">
-                                            <AlertTriangle className="w-3 h-3" /> EVM addresses are only supported when destination is Westend Relay (Polkadot Hub). Change destination or use an SS58 address.
+                                            <AlertTriangle className="w-3 h-3" /> EVM addresses are only supported when destination is Westend Relay. Change destination or use an SS58 address.
                                         </p>
                                     )}
                                     {recipient && recipientType === "invalid" && (

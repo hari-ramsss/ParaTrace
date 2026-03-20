@@ -17,7 +17,7 @@ git push origin main
 3. Connect your GitHub repository
 4. Render will detect `render.yaml` automatically
 5. Add environment variables:
-   - `RPC_WS_URL` - Your Polkadot Hub WebSocket URL
+   - `RPC_WS_URL` - Your Westend Relay WebSocket URL
    - `ASSET_HUB_WSS` - Asset Hub WebSocket URL
    - `EVM_RPC_URL` - EVM RPC endpoint (e.g., Moonbeam)
    - `REGISTRY_ADDRESS` - Your deployed contract address

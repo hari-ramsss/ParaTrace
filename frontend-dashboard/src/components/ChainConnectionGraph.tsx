@@ -3,7 +3,7 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
 import ForceGraph2D, { ForceGraphMethods } from "react-force-graph-2d";
 import { useTheme } from "@mui/material/styles";
-import { getChainName } from "@/lib/utils";
+import { formatVolume, getChainName } from "@/lib/utils";
 import type { TransactionEvent } from "@/lib/registry";
 
 interface ChainConnectionGraphProps {
@@ -255,8 +255,7 @@ export default function ChainConnectionGraph({ walletAddress, transactions }: Ch
                     const targetId = typeof link.target === "object" ? link.target.id : link.target;
 
                     if (sourceId?.startsWith("chain-") && targetId?.startsWith("chain-")) {
-                        const volume = Number(link.volume) / 1e18;
-                        return `${link.label}\nVolume: ${volume.toFixed(2)} WND`;
+                        return `${link.label}\nVolume: ${formatVolume(link.volume)} WND`;
                     }
                     return link.label;
                 }}
