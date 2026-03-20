@@ -2,7 +2,28 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  // Transpile @polkadot packages to fix "Octal escape sequences" error in production
+  // Fix "Octal escape sequences are not allowed in template strings" in production.
+  // @polkadot packages contain \0 (null/octal) escapes that break when bundled into
+  // template literals in strict mode. This replaces them with the valid \x00 hex form.
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /\.js$/,
+      include: /node_modules[\\/]@polkadot/,
+      loader: 'string-replace-loader',
+      options: {
+        multiple: [
+          {
+            // Match literal \0 in source text (regex \\0, JS string '\\\\0')
+            search: '\\0',
+            replace: '\\x00',
+            flags: 'g',
+          },
+        ],
+      },
+    });
+    return config;
+  },
+  // Transpile @polkadot packages for ESM/CJS compatibility
   transpilePackages: [
     "@polkadot/api",
     "@polkadot/api-augment",
