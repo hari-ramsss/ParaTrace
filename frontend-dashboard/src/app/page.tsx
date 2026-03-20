@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowRightLeft, Users, AlertTriangle, Gauge } from "lucide-react";
 import StatCard from "@/components/StatCard";
 import RecentActivity from "@/components/RecentActivity";
@@ -101,6 +101,28 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // UI-side de-duplication for analytics charts.
+  // The registry can emit one event per wallet (sender/receiver) for the same transfer,
+  // which is useful for profiling but can skew transfer-level visual analytics.
+  const analyticsTransactions = useMemo(() => {
+    const txs = data?.allTransactions ?? [];
+    const seen = new Set<string>();
+
+    return txs.filter((tx) => {
+      const key = [
+        tx.transactionHash,
+        tx.blockNumber,
+        tx.sourceChain,
+        tx.destChain,
+        tx.amount.toString(),
+      ].join("|");
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [data?.allTransactions]);
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-10 animate-fade-in">
       {/* Hero */}
@@ -191,10 +213,10 @@ export default function DashboardPage() {
         ) : (
           <>
             <RiskChart
-              transactions={data?.allTransactions ?? []}
+              transactions={analyticsTransactions}
             />
             <RiskTrendChart
-              transactions={data?.allTransactions ?? []}
+              transactions={analyticsTransactions}
             />
           </>
         )}

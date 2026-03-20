@@ -33,11 +33,21 @@ export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
         );
     }
 
-    // Show the last 20 transactions in chronological order (oldest → newest)
-    const recent = [...transactions].reverse().slice(-20);
+    // Build per-block averages for a cleaner trend signal.
+    const byBlock = new Map<number, { total: number; count: number }>();
+    for (const tx of transactions) {
+        const entry = byBlock.get(tx.blockNumber) ?? { total: 0, count: 0 };
+        entry.total += tx.newScore;
+        entry.count += 1;
+        byBlock.set(tx.blockNumber, entry);
+    }
 
-    const scores = recent.map((tx) => tx.newScore);
-    const labels = recent.map((_, i) => i + 1);
+    const recentBlocks = [...byBlock.entries()]
+        .sort((a, b) => a[0] - b[0])
+        .slice(-20);
+
+    const labels = recentBlocks.map(([block]) => block);
+    const scores = recentBlocks.map(([, agg]) => Math.round(agg.total / agg.count));
 
     // Compute a simple moving average (window of 5) for the trend line
     const movingAvg = scores.map((_, i) => {
@@ -64,8 +74,8 @@ export default function RiskTrendChart({ transactions }: RiskTrendChartProps) {
                 xAxis={[
                     {
                         data: labels,
-                        label: "Recent Transactions",
-                        scaleType: "point",
+                        label: "Recent Blocks",
+                        scaleType: "linear",
                         tickLabelStyle: { fill: "#6b7280", fontSize: 10 },
                         labelStyle: { fill: "#6b7280", fontSize: 11 },
                     },

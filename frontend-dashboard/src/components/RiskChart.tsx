@@ -3,8 +3,8 @@
 import { useRef, useState, useEffect } from "react";
 import { ScatterChart } from "@mui/x-charts/ScatterChart";
 import { useTheme } from "@mui/material/styles";
+import { ethers } from "ethers";
 import type { TransactionEvent } from "@/lib/registry";
-import { formatVolume } from "@/lib/utils";
 
 interface RiskValueScatterChartProps {
     transactions: TransactionEvent[];
@@ -40,8 +40,28 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
     const data = transactions.slice(0, 100).map((tx, i) => ({
         id: i,
         x: tx.newScore,
-        y: Number(tx.amount) / 1e12, // Convert to WND units (assuming 12 decimals)
+        // Use formatUnits to avoid bigint->number precision loss before scaling.
+        y: Number.parseFloat(ethers.formatUnits(tx.amount, 12)),
     }));
+
+    const volumes = data.map((p) => p.y).sort((a, b) => a - b);
+    const q = (arr: number[], percentile: number) => {
+        if (arr.length === 0) return 0;
+        const pos = (arr.length - 1) * percentile;
+        const base = Math.floor(pos);
+        const rest = pos - base;
+        const next = arr[base + 1] ?? arr[base];
+        return arr[base] + rest * (next - arr[base]);
+    };
+
+    const q1 = q(volumes, 0.25);
+    const q3 = q(volumes, 0.75);
+    const iqr = q3 - q1;
+    const lower = q1 - 1.5 * iqr;
+    const upper = q3 + 1.5 * iqr;
+
+    const normalPoints = data.filter((p) => p.y >= lower && p.y <= upper);
+    const outlierPoints = data.filter((p) => p.y < lower || p.y > upper);
 
     return (
         <div ref={containerRef} className="rounded-2xl border border-border bg-card p-6">
@@ -52,9 +72,14 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
                 <ScatterChart
                     series={[
                         {
-                            data,
-                            label: "XCM Transfers",
+                            data: normalPoints,
+                            label: "Normal Transfers",
                             color: isDark ? "#ffffff" : "#000000",
+                        },
+                        {
+                            data: outlierPoints,
+                            label: "Detected Outliers",
+                            color: "#ef4444",
                         },
                     ]}
                     width={chartWidth}
@@ -87,6 +112,9 @@ export default function RiskValueScatterChart({ transactions }: RiskValueScatter
                     }}
                 />
             </div>
+            <p className="text-[10px] text-muted mt-2">
+                IQR method (1.5x): {outlierPoints.length} outlier{outlierPoints.length === 1 ? "" : "s"} detected from {data.length} points.
+            </p>
             {/* Legend for Quadrants */}
             <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="p-3 rounded-xl border border-border bg-foreground/[0.02]">

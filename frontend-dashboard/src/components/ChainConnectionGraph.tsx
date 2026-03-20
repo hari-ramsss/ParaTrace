@@ -270,22 +270,48 @@ export default function ChainConnectionGraph({ walletAddress, transactions }: Ch
                     const fontSize = node.id === "wallet" ? 14 / globalScale : 12 / globalScale;
                     ctx.font = `${fontSize}px DM Sans`;
 
-                    // Draw node circle
-                    ctx.beginPath();
-                    const radius = node.id === "wallet" ? 7 : 5;
-                    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
-                    ctx.fillStyle = node.color;
-                    ctx.fill();
-
-                    // Add glow effect
                     if (node.id === "wallet") {
+                        // Draw wallet icon (simplified purse shape)
+                        const walletSize = 7;
+                        ctx.fillStyle = node.color;
+                        ctx.strokeStyle = node.color;
+                        ctx.lineWidth = 1.5;
+
+                        // Main wallet body (rectangle)
+                        ctx.fillRect(node.x - walletSize, node.y - walletSize / 2, walletSize * 2, walletSize);
+
+                        // Wallet flap (triangular fold at top)
+                        ctx.beginPath();
+                        ctx.moveTo(node.x - walletSize, node.y - walletSize / 2);
+                        ctx.lineTo(node.x, node.y - walletSize);
+                        ctx.lineTo(node.x + walletSize, node.y - walletSize / 2);
+                        ctx.closePath();
+                        ctx.fill();
+
+                        // Add glow effect
                         ctx.shadowColor = node.color;
                         ctx.shadowBlur = 15;
+                        ctx.fillStyle = node.color;
+                        ctx.fillRect(node.x - walletSize, node.y - walletSize / 2, walletSize * 2, walletSize);
+                        ctx.shadowBlur = 0;
+                    } else {
+                        // Draw hexagon for chains
+                        const hexSize = 5;
+                        const angles = [0, 1, 2, 3, 4, 5].map(i => (i * Math.PI) / 3);
+
                         ctx.beginPath();
-                        ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+                        angles.forEach((angle, idx) => {
+                            const x = node.x + hexSize * Math.cos(angle);
+                            const y = node.y + hexSize * Math.sin(angle);
+                            if (idx === 0) ctx.moveTo(x, y);
+                            else ctx.lineTo(x, y);
+                        });
+                        ctx.closePath();
                         ctx.fillStyle = node.color;
                         ctx.fill();
-                        ctx.shadowBlur = 0;
+                        ctx.strokeStyle = node.color;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
                     }
 
                     // Draw label with background
